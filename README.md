@@ -1,6 +1,6 @@
 # Plataforma de Gestión de Grados - ITP
 
-Sistema de gestión integral de procesos de titulación para el Instituto Tecnológico del Putumayo.
+Sistema de gestión integral de procesos de titulación para el Instituto Universitario del Putumayo.
 
 ## Descripción del Proyecto
 
