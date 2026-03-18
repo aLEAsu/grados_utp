@@ -1,0 +1,472 @@
+<div class="process-detail-container">
+  <div class="detail-header">
+    <a routerLink="/process" class="back-link">← Volver a procesos</a>
+  </div>
+
+  <!-- Messages -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <i class="pi pi-check-circle"></i>
+      <span>{{ successMessage() }}</span>
+      <button class="alert-close" (click)="successMessage.set('')">×</button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando proceso...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <p class="error-message">{{ error() }}</p>
+      <button class="btn btn-secondary" (click)="loadProcess()">Intentar de nuevo</button>
+    </div>
+  } @else if (process()) {
+    <!-- Process Header -->
+    <div class="process-header">
+      <div class="header-title">
+        <h1 class="process-title">{{ process()?.title }}</h1>
+        <span [class]="getStatusBadgeClass(process()!.status)">
+          {{ statusLabels[process()!.status] }}
+        </span>
+      </div>
+
+      <div class="header-meta">
+        <div class="meta-item">
+          <span class="meta-label">Modalidad:</span>
+          <span class="meta-value">{{ process()?.modality?.name || 'N/A' }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Estudiante:</span>
+          <span class="meta-value">
+            {{ process()?.student?.firstName }} {{ process()?.student?.lastName }}
+          </span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Asesor:</span>
+          <span class="meta-value">
+            @if (process()?.advisor) {
+              {{ process()?.advisor?.firstName }} {{ process()?.advisor?.lastName }}
+            } @else {
+              <span class="text-muted">Sin asignar</span>
+            }
+          </span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Iniciado:</span>
+          <span class="meta-value">{{ formatDate(process()!.startedAt || process()!.createdAt) }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="header-actions">
+        @if (canActivateProcess()) {
+          <button class="btn btn-primary" (click)="activateProcess()" [disabled]="actionInProgress()">
+            <i class="pi pi-play"></i>
+            {{ actionInProgress() ? 'Activando...' : 'Activar Proceso' }}
+          </button>
+        }
+        @if (canAssignAdvisor()) {
+          <button class="btn btn-secondary" (click)="openAdvisorAssignment()">
+            <i class="pi pi-user-plus"></i>
+            Asignar Asesor
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Description -->
+    @if (process()?.description) {
+      <div class="process-description">
+        <h3 class="section-subtitle">Descripción</h3>
+        <p class="description-text">{{ process()?.description }}</p>
+      </div>
+    }
+
+    <!-- Progress Bar -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <h3 class="section-subtitle">Progreso</h3>
+        <span class="progress-percentage">{{ processProgress() }}% completado</span>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" [style.width.%]="processProgress()"></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <div class="tabs-header">
+        <button class="tab-button" [class.active]="activeTab() === 'requirements'" (click)="selectTab('requirements')">
+          <i class="pi pi-list"></i> Requisitos
+        </button>
+        <button class="tab-button" [class.active]="activeTab() === 'documents'" (click)="selectTab('documents')">
+          <i class="pi pi-file"></i> Documentos
+        </button>
+        <button class="tab-button" [class.active]="activeTab() === 'approvals'" (click)="selectTab('approvals')">
+          <i class="pi pi-check-square"></i> Aprobaciones
+        </button>
+        <button class="tab-button" [class.active]="activeTab() === 'timeline'" (click)="selectTab('timeline')">
+          <i class="pi pi-history"></i> Histórico
+        </button>
+      </div>
+
+      <div class="tabs-content">
+        <!-- Requirements Tab -->
+        @if (activeTab() === 'requirements') {
+          <div class="tab-pane">
+            <h3 class="section-subtitle">Requisitos de la Modalidad</h3>
+
+            @if (process()?.requirementInstances && process()!.requirementInstances!.length > 0) {
+              <div class="requirements-list">
+                @for (req of process()!.requirementInstances!; track req.id) {
+                  <div class="requirement-card">
+                    <div class="requirement-header">
+                      <div class="requirement-info">
+                        <h4 class="requirement-name">
+                          {{ req.modalityRequirement?.documentType?.name || 'Documento' }}
+                        </h4>
+                        <span [class]="getDocumentStatusClass(req.status)">
+                          {{ documentStatusLabels[req.status] }}
+                        </span>
+                      </div>
+                      @if (req.modalityRequirement?.isRequired) {
+                        <span class="required-badge">Requerido</span>
+                      }
+                    </div>
+
+                    <p class="requirement-description">
+                      {{ req.modalityRequirement?.instructions || req.modalityRequirement?.documentType?.description || 'Sin descripción' }}
+                    </p>
+
+                    <!-- Document Versions -->
+                    @if (req.documentVersions && req.documentVersions.length > 0) {
+                      <div class="document-versions">
+                        <h5 class="versions-title">Versiones cargadas:</h5>
+                        @for (doc of req.documentVersions; track doc.id) {
+                          <div class="version-item">
+                            <span class="version-name">v{{ doc.versionNumber }}: {{ doc.originalFileName }}</span>
+                            <span class="version-date">{{ formatDate(doc.uploadedAt) }}</span>
+                            <button class="btn-icon" (click)="downloadDocument(doc.id, doc.originalFileName)" title="Descargar">
+                              <i class="pi pi-download"></i>
+                            </button>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Send to Review button (Secretary) -->
+                      @if (canSendToReview(req)) {
+                        <div class="action-row">
+                          <button class="btn btn-sm btn-secondary" (click)="sendToReview(req.id)" [disabled]="actionInProgress()">
+                            <i class="pi pi-send"></i> Enviar a Revisión
+                          </button>
+                        </div>
+                      }
+                    } @else if (req.status === 'POR_CARGAR') {
+                      <div class="upload-section">
+                        <p class="upload-instruction">Este documento aún no ha sido cargado</p>
+                        @if (canUploadDocuments()) {
+                          <div class="upload-area">
+                            <input
+                              type="file"
+                              #fileInput
+                              (change)="onFileSelected($event, req.id)"
+                              [disabled]="fileUploadInProgress()"
+                              class="file-input"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx"
+                            />
+                            <label class="upload-label" (click)="fileInput.click()">
+                              @if (fileUploadInProgress()) {
+                                <i class="pi pi-spin pi-spinner"></i>
+                                <span>Cargando...</span>
+                              } @else {
+                                <i class="pi pi-cloud-upload"></i>
+                                <span>Haz clic para cargar archivo</span>
+                              }
+                            </label>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- Upload for corrections (EN_CORRECCION status) -->
+                    @if (req.status === 'EN_CORRECCION' && canUploadDocuments()) {
+                      <div class="upload-section correction-upload">
+                        <p class="upload-instruction">Carga la versión corregida del documento</p>
+                        <div class="upload-area">
+                          <input
+                            type="file"
+                            #correctionInput
+                            (change)="onFileSelected($event, req.id)"
+                            [disabled]="fileUploadInProgress()"
+                            class="file-input"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx"
+                          />
+                          <label class="upload-label" (click)="correctionInput.click()">
+                            @if (fileUploadInProgress()) {
+                              <i class="pi pi-spin pi-spinner"></i>
+                              <span>Cargando...</span>
+                            } @else {
+                              <i class="pi pi-refresh"></i>
+                              <span>Cargar versión corregida</span>
+                            }
+                          </label>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-state">
+                <p>No hay requisitos para esta modalidad</p>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Documents Tab -->
+        @if (activeTab() === 'documents') {
+          <div class="tab-pane">
+            <h3 class="section-subtitle">Documentos</h3>
+
+            @if (process()?.requirementInstances && process()!.requirementInstances!.length > 0) {
+              <div class="documents-list">
+                @for (req of process()!.requirementInstances!; track req.id) {
+                  @if (req.documentVersions && req.documentVersions.length > 0) {
+                    <div class="document-card">
+                      <div class="document-header">
+                        <h4 class="document-title">{{ req.modalityRequirement?.documentType?.name }}</h4>
+                        <span [class]="getDocumentStatusClass(req.status)">
+                          {{ documentStatusLabels[req.status] }}
+                        </span>
+                      </div>
+
+                      @for (doc of req.documentVersions; track doc.id) {
+                        <div class="document-item">
+                          <div class="document-details">
+                            <div class="document-name-row">
+                              <span class="document-name">{{ doc.originalFileName }}</span>
+                              <button class="btn-icon" (click)="downloadDocument(doc.id, doc.originalFileName)" title="Descargar">
+                                <i class="pi pi-download"></i>
+                              </button>
+                            </div>
+                            <span class="document-size">
+                              {{ (doc.fileSizeByte / 1024).toFixed(2) }} KB
+                            </span>
+                            <span class="document-date">
+                              Cargado: {{ formatDate(doc.uploadedAt) }}
+                            </span>
+                            @if (doc.comment) {
+                              <span class="document-comment">{{ doc.comment }}</span>
+                            }
+                          </div>
+
+                          <!-- Document Observations -->
+                          @if (doc.observations && doc.observations.length > 0) {
+                            <div class="observations-list">
+                              <h5 class="observations-title">Observaciones:</h5>
+                              @for (obs of doc.observations; track obs.id) {
+                                <div class="observation-item">
+                                  <span class="obs-author">
+                                    {{ obs.author?.firstName }} {{ obs.author?.lastName }}
+                                  </span>
+                                  <span class="obs-date">{{ formatDate(obs.createdAt) }}</span>
+                                  <p class="obs-content">{{ obs.content }}</p>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            } @else {
+              <div class="empty-state">
+                <p>No hay documentos cargados aún</p>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Approvals Tab -->
+        @if (activeTab() === 'approvals') {
+          <div class="tab-pane">
+            <h3 class="section-subtitle">Aprobaciones</h3>
+
+            @if (process()?.approvals && process()!.approvals!.length > 0) {
+              <!-- Academic Approvals -->
+              @if (getApprovalsByType(ApprovalType.ACADEMIC).length > 0) {
+                <div class="approval-section">
+                  <h4 class="approval-type-title">Aprobaciones Académicas (Asesor)</h4>
+                  <div class="approvals-list">
+                    @for (approval of getApprovalsByType(ApprovalType.ACADEMIC); track approval.id) {
+                      <div class="approval-item">
+                        <div class="approval-header">
+                          <span class="approval-name">
+                            {{ approval.approver?.firstName }} {{ approval.approver?.lastName }}
+                          </span>
+                          <span [class]="getApprovalDecisionClass(approval.decision)">
+                            {{ approvalDecisionLabels[approval.decision] }}
+                          </span>
+                        </div>
+                        @if (approval.comments) {
+                          <p class="approval-comments">{{ approval.comments }}</p>
+                        }
+                        <span class="approval-date">{{ formatDate(approval.createdAt) }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Administrative Approvals -->
+              @if (getApprovalsByType(ApprovalType.ADMINISTRATIVE).length > 0) {
+                <div class="approval-section">
+                  <h4 class="approval-type-title">Aprobaciones Administrativas (Secretaría)</h4>
+                  <div class="approvals-list">
+                    @for (approval of getApprovalsByType(ApprovalType.ADMINISTRATIVE); track approval.id) {
+                      <div class="approval-item">
+                        <div class="approval-header">
+                          <span class="approval-name">
+                            {{ approval.approver?.firstName }} {{ approval.approver?.lastName }}
+                          </span>
+                          <span [class]="getApprovalDecisionClass(approval.decision)">
+                            {{ approvalDecisionLabels[approval.decision] }}
+                          </span>
+                        </div>
+                        @if (approval.comments) {
+                          <p class="approval-comments">{{ approval.comments }}</p>
+                        }
+                        <span class="approval-date">{{ formatDate(approval.createdAt) }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="empty-state">
+                <p>Sin aprobaciones registradas aún</p>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Timeline Tab -->
+        @if (activeTab() === 'timeline') {
+          <div class="tab-pane">
+            <h3 class="section-subtitle">Histórico del Proceso</h3>
+
+            <div class="timeline">
+              <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                  <h4 class="timeline-title">Proceso creado</h4>
+                  <p class="timeline-date">{{ formatDate(process()!.createdAt) }}</p>
+                  <p class="timeline-description">Inscripción de grado iniciada</p>
+                </div>
+              </div>
+
+              @if (process()!.advisorId) {
+                <div class="timeline-item">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4 class="timeline-title">Asesor asignado</h4>
+                    <p class="timeline-description">
+                      {{ process()?.advisor?.firstName }} {{ process()?.advisor?.lastName }}
+                    </p>
+                  </div>
+                </div>
+              }
+
+              @if (process()!.status !== ProcessStatus.DRAFT) {
+                <div class="timeline-item">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4 class="timeline-title">Proceso activado</h4>
+                    <p class="timeline-description">El proceso pasó de estado borrador a activo</p>
+                  </div>
+                </div>
+              }
+
+              @if (process()!.status === ProcessStatus.IN_REVIEW || process()!.status === ProcessStatus.APPROVED || process()!.status === ProcessStatus.COMPLETED) {
+                <div class="timeline-item">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4 class="timeline-title">En revisión</h4>
+                    <p class="timeline-description">Los documentos fueron enviados a revisión</p>
+                  </div>
+                </div>
+              }
+
+              @if (process()!.status === ProcessStatus.APPROVED || process()!.status === ProcessStatus.COMPLETED) {
+                <div class="timeline-item">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4 class="timeline-title">Proceso aprobado</h4>
+                    <p class="timeline-description">Todos los requisitos han sido aprobados</p>
+                  </div>
+                </div>
+              }
+
+              @if (process()!.completedAt) {
+                <div class="timeline-item">
+                  <div class="timeline-marker completed"></div>
+                  <div class="timeline-content">
+                    <h4 class="timeline-title">Proceso completado</h4>
+                    <p class="timeline-date">{{ formatDate(process()!.completedAt!) }}</p>
+                    <p class="timeline-description">Todos los requisitos han sido cumplidos y finalizados</p>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Advisor Assignment Modal -->
+    @if (showAdvisorModal()) {
+      <div class="modal-overlay" (click)="closeAdvisorModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Asignar Asesor</h3>
+            <button class="btn-icon" (click)="closeAdvisorModal()">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            @if (availableAdvisors().length === 0) {
+              <p class="text-muted">No hay asesores disponibles en este momento.</p>
+            } @else {
+              <div class="advisor-list">
+                @for (advisor of availableAdvisors(); track advisor.id) {
+                  <label class="advisor-option" [class.selected]="selectedAdvisorId === advisor.id">
+                    <input type="radio" name="advisor" [value]="advisor.id" [(ngModel)]="selectedAdvisorId" />
+                    <div class="advisor-info">
+                      <span class="advisor-name">{{ advisor.firstName }} {{ advisor.lastName }}</span>
+                      <span class="advisor-detail">{{ advisor.advisorProfile?.department }} - {{ advisor.advisorProfile?.specialization }}</span>
+                      <span class="advisor-capacity">
+                        {{ advisor.advisorProfile?.currentActiveProcesses }}/{{ advisor.advisorProfile?.maxActiveProcesses }} procesos
+                      </span>
+                    </div>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline" (click)="closeAdvisorModal()">Cancelar</button>
+            <button class="btn btn-primary" (click)="assignAdvisor()" [disabled]="!selectedAdvisorId || actionInProgress()">
+              {{ actionInProgress() ? 'Asignando...' : 'Asignar Asesor' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

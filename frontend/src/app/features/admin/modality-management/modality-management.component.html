@@ -1,0 +1,198 @@
+<div class="modalities-container">
+  <div class="page-header">
+    <div>
+      <h1>Gestión de Modalidades</h1>
+      <p class="subtitle">Modalidades de grado y sus requisitos documentales</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <i class="pi pi-plus"></i> Nueva Modalidad
+    </button>
+  </div>
+
+  @if (successMsg()) {
+    <div class="alert alert-success">
+      <i class="pi pi-check-circle"></i>
+      <span>{{ successMsg() }}</span>
+      <button class="alert-close" (click)="successMsg.set('')">×</button>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-banner">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ error() }}</span>
+      <button class="retry-btn" (click)="loadModalities()">Reintentar</button>
+    </div>
+  }
+
+  <div class="controls-section">
+    <div class="search-bar">
+      <i class="pi pi-search search-icon"></i>
+      <input type="text" placeholder="Buscar modalidades..." [(ngModel)]="searchTerm" class="search-input" />
+    </div>
+    <div class="results-count">{{ filteredModalities.length }} modalidades</div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando modalidades...</p>
+    </div>
+  } @else if (filteredModalities.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon"><i class="pi pi-book"></i></div>
+      <h3>No se encontraron modalidades</h3>
+      <p>No hay modalidades configuradas en el sistema.</p>
+    </div>
+  } @else {
+    <div class="modalities-grid">
+      @for (modality of filteredModalities; track modality.id) {
+        <div class="modality-card" [class.expanded]="expandedId === modality.id">
+          <div class="card-header" (click)="toggleExpand(modality.id)">
+            <div class="header-left">
+              <div class="modality-icon" [class]="getModalityColor(modality.code)">
+                <i [class]="getModalityIcon(modality.code)"></i>
+              </div>
+              <div class="modality-info">
+                <h3>{{ modality.name }}</h3>
+                <p>{{ modality.description }}</p>
+              </div>
+            </div>
+            <div class="header-right">
+              <span class="active-badge" [class.active]="modality.isActive">{{ modality.isActive ? 'Activa' : 'Inactiva' }}</span>
+              <i class="pi" [class.pi-chevron-down]="expandedId === modality.id" [class.pi-chevron-right]="expandedId !== modality.id"></i>
+            </div>
+          </div>
+
+          @if (expandedId === modality.id) {
+            <div class="card-body">
+              <div class="card-actions">
+                <button class="btn btn-sm btn-outline" (click)="openEditModal(modality); $event.stopPropagation()">
+                  <i class="pi pi-pencil"></i> Editar
+                </button>
+                <button class="btn btn-sm btn-outline" (click)="openAddRequirement(modality.id); $event.stopPropagation()">
+                  <i class="pi pi-plus"></i> Agregar Requisito
+                </button>
+              </div>
+
+              <div class="requirements-section">
+                <h4><i class="pi pi-list"></i> Documentos Requeridos</h4>
+                @if (modality.requirements && modality.requirements.length > 0) {
+                  <div class="requirements-list">
+                    @for (req of modality.requirements; track req.id) {
+                      <div class="requirement-item">
+                        <span class="req-order">{{ req.displayOrder }}</span>
+                        <div class="req-info">
+                          <span class="req-name">{{ req.documentType?.name || 'Tipo de documento' }}</span>
+                          <span class="req-desc">{{ req.instructions || req.documentType?.description || '' }}</span>
+                        </div>
+                        <span class="req-badge" [class.required]="req.isRequired">{{ req.isRequired ? 'Obligatorio' : 'Opcional' }}</span>
+                        <button class="btn-icon-sm danger" (click)="removeRequirement(modality.id, req.id); $event.stopPropagation()" title="Eliminar requisito">
+                          <i class="pi pi-trash"></i>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <p class="no-data">No hay requisitos documentales configurados para esta modalidad.</p>
+                }
+              </div>
+
+              <div class="modality-meta">
+                <div class="meta-item">
+                  <span class="meta-label">Código:</span>
+                  <span class="meta-value code-badge">{{ modality.code }}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Estado:</span>
+                  <span class="meta-value">{{ modality.isActive ? 'Activa' : 'Inactiva' }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Create/Edit Modality Modal -->
+  @if (showCreateModal()) {
+    <div class="modal-overlay" (click)="closeCreateModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ editingModality() ? 'Editar Modalidad' : 'Nueva Modalidad' }}</h3>
+          <button class="btn-icon" (click)="closeCreateModal()"><i class="pi pi-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nombre *</label>
+            <input type="text" class="form-input" [(ngModel)]="modalityForm.name" placeholder="Ej: Tesis de Grado" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Código *</label>
+            <input type="text" class="form-input" [(ngModel)]="modalityForm.code" placeholder="Ej: THESIS" [disabled]="!!editingModality()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-textarea" [(ngModel)]="modalityForm.description" rows="3" placeholder="Descripción de la modalidad"></textarea>
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="modalityForm.isActive" />
+              <span>Modalidad activa</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" (click)="closeCreateModal()">Cancelar</button>
+          <button class="btn btn-primary" (click)="saveModality()" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : (editingModality() ? 'Actualizar' : 'Crear') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Add Requirement Modal -->
+  @if (showRequirementModal()) {
+    <div class="modal-overlay" (click)="closeRequirementModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Agregar Requisito</h3>
+          <button class="btn-icon" (click)="closeRequirementModal()"><i class="pi pi-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tipo de Documento *</label>
+            <select class="form-input" [(ngModel)]="requirementForm.documentTypeId">
+              <option value="">Seleccionar...</option>
+              @for (dt of documentTypes(); track dt.id) {
+                <option [value]="dt.id">{{ dt.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Orden de presentación</label>
+            <input type="number" class="form-input" [(ngModel)]="requirementForm.displayOrder" min="1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instrucciones</label>
+            <textarea class="form-textarea" [(ngModel)]="requirementForm.instructions" rows="2" placeholder="Instrucciones opcionales"></textarea>
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="requirementForm.isRequired" />
+              <span>Es obligatorio</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" (click)="closeRequirementModal()">Cancelar</button>
+          <button class="btn btn-primary" (click)="addRequirement()" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Agregar Requisito' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

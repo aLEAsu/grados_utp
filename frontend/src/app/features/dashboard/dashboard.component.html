@@ -1,0 +1,222 @@
+<div class="dashboard">
+  <!-- Header section -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="greeting">{{ getGreeting() }}, {{ currentUser()?.firstName }}</h1>
+      <p class="role-label">{{ getRoleLabel() }} - Plataforma de Grados ITP</p>
+    </div>
+    @if (userRole() === UserRole.STUDENT) {
+      <a routerLink="/process/new" class="action-btn primary">
+        <i class="pi pi-plus"></i>
+        <span>Nueva Inscripción</span>
+      </a>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="loading-spinner-lg"></div>
+      <p>Cargando información...</p>
+    </div>
+  } @else {
+
+    <!-- STUDENT VIEW -->
+    @if (userRole() === UserRole.STUDENT) {
+      @if (myProcesses().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="pi pi-file"></i>
+          </div>
+          <h3>No tienes procesos de grado</h3>
+          <p>Inicia tu proceso de grado seleccionando una modalidad</p>
+          <a routerLink="/process/new" class="action-btn primary">
+            <i class="pi pi-plus"></i>
+            <span>Inscribirme a una Modalidad</span>
+          </a>
+        </div>
+      } @else {
+        <div class="quick-stats">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="pi pi-file"></i></div>
+            <div class="stat-info">
+              <span class="stat-value">{{ myProcesses().length }}</span>
+              <span class="stat-label">Procesos</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="pi pi-check-circle"></i></div>
+            <div class="stat-info">
+              <span class="stat-value">{{ getActiveCount() }}</span>
+              <span class="stat-label">En Progreso</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Mis Procesos de Grado</h2>
+          <div class="process-cards">
+            @for (process of myProcesses(); track process.id) {
+              <a [routerLink]="['/process', process.id]" class="process-card">
+                <div class="process-card-header">
+                  <span class="modality-tag">{{ process.modality?.name || 'Modalidad' }}</span>
+                  <span class="status-tag" [class]="getStatusClass(process.status)">{{ getStatusLabel(process.status) }}</span>
+                </div>
+                <h3 class="process-title">{{ process.title }}</h3>
+                <p class="process-desc">{{ process.description || 'Sin descripción' }}</p>
+                <div class="process-meta">
+                  <span><i class="pi pi-calendar"></i> {{ process.startedAt | date:'mediumDate' }}</span>
+                  @if (process.advisor) {
+                    <span><i class="pi pi-user"></i> {{ process.advisor.firstName }} {{ process.advisor.lastName }}</span>
+                  }
+                </div>
+              </a>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ADVISOR VIEW -->
+    @if (userRole() === UserRole.ADVISOR) {
+      <div class="quick-stats">
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="pi pi-clock"></i></div>
+          <div class="stat-info">
+            <span class="stat-value">{{ pendingReviews().length }}</span>
+            <span class="stat-label">Revisiones Pendientes</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Revisiones Pendientes</h2>
+          <a routerLink="/reviews/pending" class="view-all-link">Ver todas <i class="pi pi-arrow-right"></i></a>
+        </div>
+
+        @if (pendingReviews().length === 0) {
+          <div class="empty-state-compact">
+            <i class="pi pi-check-circle"></i>
+            <p>No tienes revisiones pendientes</p>
+          </div>
+        } @else {
+          <div class="review-list">
+            @for (review of pendingReviews().slice(0, 5); track review.id) {
+              <div class="review-item">
+                <div class="review-icon"><i class="pi pi-file-edit"></i></div>
+                <div class="review-content">
+                  <h4>{{ review.title || 'Proceso de Grado' }}</h4>
+                  <p>{{ review.studentName || 'Estudiante' }} - {{ review.documentName || 'Documento' }}</p>
+                </div>
+                <a [routerLink]="['/process', review.processId]" class="review-action">Revisar</a>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- SECRETARY / ADMIN VIEW -->
+    @if (userRole() === UserRole.SECRETARY || userRole() === UserRole.ADMIN || userRole() === UserRole.SUPERADMIN) {
+      @if (stats()) {
+        <div class="quick-stats">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="pi pi-file"></i></div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats()!.totalProcesses }}</span>
+              <span class="stat-label">Total Procesos</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="pi pi-spinner"></i></div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats()!.activeProcesses }}</span>
+              <span class="stat-label">Activos</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="pi pi-clock"></i></div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats()!.pendingReviews }}</span>
+              <span class="stat-label">Por Revisar</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="pi pi-check-circle"></i></div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats()!.completedProcesses }}</span>
+              <span class="stat-label">Completados</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts section -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3 class="chart-title">Procesos por Modalidad</h3>
+            <div class="chart-bars">
+              @for (item of stats()!.processesByModality; track item.modality) {
+                <div class="bar-item">
+                  <div class="bar-label">{{ getModalityLabel(item.modality) }}</div>
+                  <div class="bar-track">
+                    <div class="bar-fill" [style.width.%]="(item.count / (stats()!.totalProcesses || 1)) * 100"></div>
+                  </div>
+                  <div class="bar-value">{{ item.count }}</div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h3 class="chart-title">Procesos por Estado</h3>
+            <div class="status-list">
+              @for (item of stats()!.processesByStatus; track item.status) {
+                <div class="status-item">
+                  <div class="status-dot" [class]="getStatusClass(item.status)"></div>
+                  <span class="status-name">{{ getStatusLabel(item.status) }}</span>
+                  <span class="status-count">{{ item.count }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick links -->
+        @if (userRole() === UserRole.SECRETARY) {
+          <div class="section">
+            <h2 class="section-title">Acciones Rápidas</h2>
+            <div class="quick-actions">
+              <a routerLink="/reviews/administrative" class="quick-action-card">
+                <i class="pi pi-folder-open"></i>
+                <span>Gestionar Documentos</span>
+              </a>
+              <a routerLink="/process/all" class="quick-action-card">
+                <i class="pi pi-list"></i>
+                <span>Ver Procesos</span>
+              </a>
+            </div>
+          </div>
+        }
+        @if (userRole() === UserRole.ADMIN || userRole() === UserRole.SUPERADMIN) {
+          <div class="section">
+            <h2 class="section-title">Administración</h2>
+            <div class="quick-actions">
+              <a routerLink="/admin/users" class="quick-action-card">
+                <i class="pi pi-users"></i>
+                <span>Gestionar Usuarios</span>
+              </a>
+              <a routerLink="/admin/modalities" class="quick-action-card">
+                <i class="pi pi-cog"></i>
+                <span>Modalidades</span>
+              </a>
+              <a routerLink="/admin/audit" class="quick-action-card">
+                <i class="pi pi-history"></i>
+                <span>Auditoría</span>
+              </a>
+            </div>
+          </div>
+        }
+      }
+    }
+  }
+</div>

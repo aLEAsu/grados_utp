@@ -1,0 +1,117 @@
+<div class="users-container">
+  <div class="page-header">
+    <h1>Gestión de Usuarios</h1>
+    <p class="subtitle">Administra los usuarios del sistema y sus roles</p>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ error() }}</span>
+      <button class="retry-btn" (click)="loadUsers()">Reintentar</button>
+    </div>
+  }
+
+  <div class="controls-section">
+    <div class="search-bar">
+      <i class="pi pi-search search-icon"></i>
+      <input type="text" placeholder="Buscar por nombre o correo..." [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" class="search-input" />
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filterRole" (change)="onFilterChange()" class="filter-select">
+        <option value="all">Todos los Roles</option>
+        @for (role of roles; track role) {
+          <option [value]="role">{{ getRoleLabel(role) }}</option>
+        }
+      </select>
+
+      <select [(ngModel)]="filterStatus" class="filter-select">
+        <option value="all">Todos los Estados</option>
+        <option value="active">Activos</option>
+        <option value="inactive">Inactivos</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-chip">
+      <span class="stat-num">{{ total }}</span>
+      <span class="stat-txt">Total Usuarios</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">{{ filteredUsers.length }}</span>
+      <span class="stat-txt">Mostrando</span>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando usuarios...</p>
+    </div>
+  } @else if (filteredUsers.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon"><i class="pi pi-users"></i></div>
+      <h3>No se encontraron usuarios</h3>
+      <p>Intenta ajustar tu búsqueda o filtros.</p>
+    </div>
+  } @else {
+    <div class="table-container">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Fecha Registro</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of filteredUsers; track user.id) {
+            <tr>
+              <td class="user-cell">
+                <div class="user-info">
+                  <div class="avatar">{{ getInitials(user) }}</div>
+                  <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                </div>
+              </td>
+              <td class="email-cell">{{ user.email }}</td>
+              <td>
+                <span class="role-badge" [class]="getRoleClass(user.role)">{{ getRoleLabel(user.role) }}</span>
+              </td>
+              <td>
+                <div class="status-toggle" (click)="toggleUserActive(user)">
+                  <div class="toggle-track" [class.active]="user.isActive" [class.processing]="processingId === user.id">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                  <span class="status-label" [class.active]="user.isActive">{{ user.isActive ? 'Activo' : 'Inactivo' }}</span>
+                </div>
+              </td>
+              <td class="date-cell">{{ user.createdAt | date:'mediumDate' }}</td>
+              <td>
+                <a [routerLink]="['/admin/users', user.id]" class="table-action" title="Ver detalles">
+                  <i class="pi pi-eye"></i>
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="prevPage()" [disabled]="currentPage === 1">
+          <i class="pi pi-chevron-left"></i>
+        </button>
+        <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+        <button class="page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,110 @@
+<div class="reviews-container">
+  <div class="page-header">
+    <h1>Gestión Administrativa de Documentos</h1>
+    <p class="subtitle">Revisión administrativa de documentos con aprobación académica previa</p>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ error() }}</span>
+      <button class="retry-btn" (click)="loadReviews()">Reintentar</button>
+    </div>
+  }
+
+  <div class="filters-section">
+    <div class="search-bar">
+      <i class="pi pi-search search-icon"></i>
+      <input type="text" placeholder="Buscar por estudiante, proceso o documento..." [(ngModel)]="searchTerm" class="search-input" />
+    </div>
+    <div class="results-count">{{ filteredReviews.length }} documentos por gestionar</div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando documentos...</p>
+    </div>
+  } @else if (filteredReviews.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon"><i class="pi pi-inbox"></i></div>
+      <h3>No hay documentos pendientes</h3>
+      <p>No hay documentos con aprobación académica que requieran gestión administrativa.</p>
+    </div>
+  } @else {
+    <div class="reviews-list">
+      @for (item of filteredReviews; track item.id) {
+        <div class="review-card" [class.expanded]="expandedId === item.id">
+          <div class="card-header" (click)="toggleExpand(item.id)">
+            <div class="header-left">
+              <i class="pi" [class.pi-chevron-down]="expandedId === item.id" [class.pi-chevron-right]="expandedId !== item.id"></i>
+              <div class="doc-info">
+                <h3>{{ item.documentName || item.title || 'Documento' }}</h3>
+                <p>{{ item.studentName || 'Estudiante' }} &mdash; {{ item.processTitle || 'Proceso' }}</p>
+              </div>
+            </div>
+            <div class="header-right">
+              <span class="approval-tag academic"><i class="pi pi-check"></i> Aprobación Académica</span>
+              <span class="date-text">{{ item.uploadDate || item.createdAt | date:'mediumDate' }}</span>
+            </div>
+          </div>
+
+          @if (expandedId === item.id) {
+            <div class="card-body">
+              <div class="approval-status-bar">
+                <div class="approval-step completed">
+                  <i class="pi pi-check-circle"></i>
+                  <span>Aprobación Académica</span>
+                </div>
+                <div class="approval-arrow"><i class="pi pi-arrow-right"></i></div>
+                <div class="approval-step pending">
+                  <i class="pi pi-clock"></i>
+                  <span>Aprobación Administrativa</span>
+                </div>
+              </div>
+
+              <div class="body-section">
+                <h4><i class="pi pi-file"></i> Detalles</h4>
+                <div class="details-grid">
+                  <div class="detail"><span class="label">Estudiante:</span><span>{{ item.studentName || '—' }}</span></div>
+                  <div class="detail"><span class="label">Proceso:</span><span>{{ item.processTitle || '—' }}</span></div>
+                  <div class="detail"><span class="label">Documento:</span><span>{{ item.documentName || '—' }}</span></div>
+                </div>
+                @if (item.documentVersionId) {
+                  <button class="download-btn" (click)="downloadDocument(item.documentVersionId, item.documentName); $event.stopPropagation()">
+                    <i class="pi pi-download"></i> Descargar Documento
+                  </button>
+                }
+              </div>
+
+              <div class="body-section">
+                <h4><i class="pi pi-comments"></i> Observaciones</h4>
+                <div class="observation-input">
+                  <textarea [(ngModel)]="observationTexts[item.id]" placeholder="Agregar observación administrativa..." rows="3"></textarea>
+                  <button class="obs-btn" (click)="addObservation(item)" [disabled]="!observationTexts[item.id]?.trim()">
+                    <i class="pi pi-plus"></i> Agregar
+                  </button>
+                </div>
+              </div>
+
+              <div class="body-section actions">
+                <h4><i class="pi pi-check-square"></i> Decisión Administrativa</h4>
+                <div class="action-buttons">
+                  <button class="action-btn send-review" (click)="sendToReview(item)" [disabled]="processingId !== null">
+                    <i class="pi pi-send"></i> Enviar a Revisión
+                  </button>
+                  <button class="action-btn approve" (click)="approveAdministratively(item)" [disabled]="processingId !== null">
+                    <i class="pi pi-check"></i> Aprobar Administrativamente
+                  </button>
+                  <button class="action-btn reject" (click)="rejectAdministratively(item)" [disabled]="processingId !== null">
+                    <i class="pi pi-times"></i> Rechazar
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

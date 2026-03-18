@@ -1,0 +1,87 @@
+<div class="audit-container">
+  <div class="page-header">
+    <div>
+      <h1>Log de Auditoría</h1>
+      <p class="subtitle">Historial de actividades y acciones del sistema</p>
+    </div>
+    <button class="export-btn" (click)="exportCSV()" [disabled]="filteredEvents.length === 0">
+      <i class="pi pi-download"></i> Exportar CSV
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ error() }}</span>
+      <button class="retry-btn" (click)="loadEvents()">Reintentar</button>
+    </div>
+  }
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Usuario</label>
+      <input type="text" placeholder="Buscar por nombre..." [(ngModel)]="filterUser" class="filter-input" />
+    </div>
+    <div class="filter-group">
+      <label>Acción</label>
+      <select [(ngModel)]="filterAction" class="filter-select">
+        @for (action of actions; track action) {
+          <option [value]="action">{{ action === 'all' ? 'Todas las acciones' : action }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Fecha Inicio</label>
+      <input type="date" [(ngModel)]="filterStartDate" class="filter-input" />
+    </div>
+    <div class="filter-group">
+      <label>Fecha Fin</label>
+      <input type="date" [(ngModel)]="filterEndDate" class="filter-input" />
+    </div>
+    <button class="clear-btn" (click)="clearFilters()">
+      <i class="pi pi-filter-slash"></i> Limpiar
+    </button>
+  </div>
+
+  <div class="results-info">{{ filteredEvents.length }} eventos encontrados</div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando eventos de auditoría...</p>
+    </div>
+  } @else if (filteredEvents.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon"><i class="pi pi-history"></i></div>
+      <h3>No se encontraron eventos</h3>
+      <p>Ajusta los filtros o espera a que se registren nuevas actividades.</p>
+    </div>
+  } @else {
+    <div class="timeline">
+      @for (event of filteredEvents; track event.id) {
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="action-icon" [class]="getActionClass(event.action)">
+              <i [class]="getActionIcon(event.action)"></i>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <div class="event-header">
+              <span class="event-action">{{ event.action }}</span>
+              <span class="event-time">{{ event.createdAt | date:'short' }}</span>
+            </div>
+            <div class="event-details">
+              <span class="event-entity">{{ event.entity }} #{{ event.entityId }}</span>
+              @if (event.user) {
+                <span class="event-user"><i class="pi pi-user"></i> {{ event.user.firstName }}</span>
+              }
+              @if (event.ipAddress) {
+                <span class="event-ip"><i class="pi pi-globe"></i> {{ event.ipAddress }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,211 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h1 class="page-title">Mi Perfil</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando perfil...</p>
+    </div>
+  } @else if (user()) {
+    <!-- Success / Error Messages -->
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <i class="pi pi-check-circle"></i>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+    @if (error()) {
+      <div class="alert alert-error">
+        <i class="pi pi-times-circle"></i>
+        <span>{{ error() }}</span>
+      </div>
+    }
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <div class="profile-card-header">
+        <div class="avatar-large">
+          <span>{{ getUserInitials() }}</span>
+        </div>
+        <div class="profile-info">
+          <h2 class="user-name">{{ user()!.firstName }} {{ user()!.lastName }}</h2>
+          <span class="role-badge">{{ getRoleLabel() }}</span>
+          <p class="user-email">{{ user()!.email }}</p>
+        </div>
+        <button class="btn btn-outline" (click)="toggleEdit()">
+          <i class="pi" [class.pi-pencil]="!editMode()" [class.pi-times]="editMode()"></i>
+          {{ editMode() ? 'Cancelar' : 'Editar' }}
+        </button>
+      </div>
+
+      <!-- Basic Info Section -->
+      <div class="profile-section">
+        <h3 class="section-title">Información Personal</h3>
+
+        @if (editMode()) {
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-input" [(ngModel)]="firstName" placeholder="Nombre" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Apellido</label>
+              <input type="text" class="form-input" [(ngModel)]="lastName" placeholder="Apellido" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input type="tel" class="form-input" [(ngModel)]="phone" placeholder="Teléfono (opcional)" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Correo electrónico</label>
+              <input type="email" class="form-input" [value]="user()!.email" disabled />
+              <span class="form-hint">El correo no se puede cambiar</span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" (click)="saveProfile()" [disabled]="saving()">
+              @if (saving()) {
+                <span>Guardando...</span>
+              } @else {
+                <i class="pi pi-check"></i>
+                <span>Guardar Cambios</span>
+              }
+            </button>
+          </div>
+        } @else {
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Nombre</span>
+              <span class="info-value">{{ user()!.firstName }} {{ user()!.lastName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Correo electrónico</span>
+              <span class="info-value">{{ user()!.email }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Teléfono</span>
+              <span class="info-value">{{ user()!.phone || 'No registrado' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Estado</span>
+              <span class="info-value">
+                <span class="status-dot" [class.active]="user()!.isActive" [class.inactive]="!user()!.isActive"></span>
+                {{ user()!.isActive ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Correo verificado</span>
+              <span class="info-value">{{ user()!.emailVerified ? 'Sí' : 'No' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Cuenta Google</span>
+              <span class="info-value">{{ user()!.googleId ? 'Vinculada' : 'No vinculada' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Student Profile Section -->
+      @if (userRole() === UserRole.STUDENT) {
+        <div class="profile-section">
+          <h3 class="section-title">Perfil Académico</h3>
+
+          @if (user()!.studentProfile) {
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Código de Estudiante</span>
+                <span class="info-value font-mono">{{ user()!.studentProfile!.studentCode }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Programa</span>
+                <span class="info-value">{{ user()!.studentProfile!.program }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Semestre</span>
+                <span class="info-value">{{ user()!.studentProfile!.semester }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Estado Académico</span>
+                <span class="info-value">{{ getAcademicStatusLabel(user()!.studentProfile!.academicStatus) }}</span>
+              </div>
+            </div>
+          } @else {
+            <div class="empty-profile">
+              <p>No tienes un perfil de estudiante registrado. Completa los datos para poder iniciar tu proceso de grado.</p>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Código de Estudiante *</label>
+                  <input type="text" class="form-input" [(ngModel)]="studentCode" placeholder="Ej: 202010001" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Programa Académico *</label>
+                  <input type="text" class="form-input" [(ngModel)]="program" placeholder="Ej: Ingeniería de Sistemas" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Facultad</label>
+                  <input type="text" class="form-input" [(ngModel)]="faculty" placeholder="Facultad (opcional)" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Semestre Actual</label>
+                  <input type="number" class="form-input" [(ngModel)]="semester" min="1" max="20" />
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" (click)="createStudentProfile()" [disabled]="saving()">
+                  @if (saving()) {
+                    <span>Guardando...</span>
+                  } @else {
+                    <i class="pi pi-plus"></i>
+                    <span>Crear Perfil Académico</span>
+                  }
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Advisor Profile Section -->
+      @if (userRole() === UserRole.ADVISOR && user()!.advisorProfile) {
+        <div class="profile-section">
+          <h3 class="section-title">Perfil de Asesor</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Departamento</span>
+              <span class="info-value">{{ user()!.advisorProfile!.department }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Especialización</span>
+              <span class="info-value">{{ user()!.advisorProfile!.specialization }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Procesos Activos</span>
+              <span class="info-value">{{ user()!.advisorProfile!.currentActiveProcesses }} / {{ user()!.advisorProfile!.maxActiveProcesses }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Disponible</span>
+              <span class="info-value">{{ user()!.advisorProfile!.isAvailable ? 'Sí' : 'No' }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Account Info -->
+      <div class="profile-section">
+        <h3 class="section-title">Información de Cuenta</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Miembro desde</span>
+            <span class="info-value">{{ user()!.createdAt | date:'longDate' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Última actualización</span>
+            <span class="info-value">{{ user()!.updatedAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

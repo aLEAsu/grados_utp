@@ -1,0 +1,401 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Seed {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  @@map("seeds")
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  STUDENT
+  ADVISOR
+  SECRETARY
+  ADMIN
+  SUPERADMIN
+
+  @@map("user_role")
+}
+
+enum AcademicStatus {
+  ACTIVE
+  INACTIVE
+  GRADUATED
+  SUSPENDED
+
+  @@map("academic_status")
+}
+
+enum DegreeModalityCode {
+  THESIS
+  INTERNSHIP
+  RESEARCH_LINE
+  DIPLOMA
+
+  @@map("degree_modality_code")
+}
+
+enum ProcessStatus {
+  DRAFT
+  ACTIVE
+  IN_REVIEW
+  APPROVED
+  COMPLETED
+  ARCHIVED
+
+  @@map("process_status")
+}
+
+enum DocumentStatus {
+  POR_CARGAR
+  PENDIENTE
+  EN_REVISION
+  EN_CORRECCION
+  APROBADO
+  FINALIZADO
+
+  @@map("document_status")
+}
+
+enum ApprovalType {
+  ACADEMIC
+  ADMINISTRATIVE
+
+  @@map("approval_type")
+}
+
+enum ApprovalDecision {
+  APPROVED
+  REJECTED
+  REVISION_REQUESTED
+
+  @@map("approval_decision")
+}
+
+enum NotificationType {
+  DOCUMENT_UPLOADED
+  REVIEW_REQUESTED
+  APPROVAL_GRANTED
+  REVISION_REQUIRED
+  PROCESS_COMPLETED
+  SIGNATURE_APPLIED
+  GENERAL
+
+  @@map("notification_type")
+}
+
+// Models
+model User {
+  id                   String   @id @default(uuid()) @db.Uuid
+  email                String   @unique
+  passwordHash         String?
+  firstName            String
+  lastName             String
+  phone                String?
+  avatarUrl            String?
+  role                 UserRole
+  isActive             Boolean  @default(true) @map("is_active")
+  emailVerified        Boolean  @default(false) @map("email_verified")
+  googleId             String?  @unique @map("google_id")
+  institutionalEmail   String?  @unique @map("institutional_email")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  studentProfile       StudentProfile?
+  advisorProfile       AdvisorProfile?
+  degreeProcessesAsStudent   DegreeProcess[] @relation("StudentDegreeProcess")
+  degreeProcessesAsAdvisor   DegreeProcess[] @relation("AdvisorDegreeProcess")
+  documentVersionsUploaded   DocumentVersion[] @relation("UploadedByUser")
+  approvalsGiven       Approval[] @relation("ApproverUser")
+  signaturesApplied    DigitalSignature[] @relation("SignedByUser")
+  observations         Observation[] @relation("AuthorObservation")
+  notifications        Notification[]
+  auditEvents          AuditEvent[] @relation("UserAuditEvent")
+  sessions             Session[]
+
+  @@map("users")
+}
+
+model StudentProfile {
+  id                    String   @id @default(uuid()) @db.Uuid
+  userId                String   @unique @db.Uuid @map("user_id")
+  studentCode           String   @unique @map("student_code")
+  program               String
+  faculty               String
+  semester              Int
+  academicStatus        AcademicStatus @map("academic_status")
+  hasCompletedSubjects  Boolean  @default(false) @map("has_completed_subjects")
+  externalStudentId     String?  @map("external_student_id")
+  lastSyncAt            DateTime? @map("last_sync_at")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("student_profiles")
+}
+
+model AdvisorProfile {
+  id                    String   @id @default(uuid()) @db.Uuid
+  userId                String   @unique @db.Uuid @map("user_id")
+  department            String
+  specialization        String
+  maxActiveProcesses    Int      @default(5) @map("max_active_processes")
+  currentActiveProcesses Int     @default(0) @map("current_active_processes")
+  isAvailable           Boolean  @default(true) @map("is_available")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("advisor_profiles")
+}
+
+model DegreeModality {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  code        DegreeModalityCode @unique
+  description String
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  modalityRequirements ModalityRequirement[]
+  degreeProcesses      DegreeProcess[]
+
+  @@map("degree_modalities")
+}
+
+model DocumentType {
+  id                  String   @id @default(uuid()) @db.Uuid
+  name                String
+  code                String   @unique
+  description         String
+  acceptedMimeTypes   String[] @map("accepted_mime_types")
+  maxFileSizeMb       Int      @default(10) @map("max_file_size_mb")
+  templateUrl         String?  @map("template_url")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  modalityRequirements ModalityRequirement[]
+
+  @@map("document_types")
+}
+
+model ModalityRequirement {
+  id                String   @id @default(uuid()) @db.Uuid
+  modalityId        String   @db.Uuid @map("modality_id")
+  documentTypeId    String   @db.Uuid @map("document_type_id")
+  isRequired        Boolean  @default(true) @map("is_required")
+  displayOrder      Int      @map("display_order")
+  instructions      String?
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relations
+  modality          DegreeModality @relation(fields: [modalityId], references: [id], onDelete: Cascade)
+  documentType      DocumentType   @relation(fields: [documentTypeId], references: [id], onDelete: Cascade)
+  requirementInstances RequirementInstance[]
+
+  @@unique([modalityId, documentTypeId])
+  @@map("modality_requirements")
+}
+
+model DegreeProcess {
+  id                String   @id @default(uuid()) @db.Uuid
+  studentId         String   @db.Uuid @map("student_id")
+  advisorId         String?  @db.Uuid @map("advisor_id")
+  modalityId        String   @db.Uuid @map("modality_id")
+  status            ProcessStatus
+  title             String?
+  description       String?
+  startedAt         DateTime @default(now()) @map("started_at")
+  completedAt       DateTime? @map("completed_at")
+  archivedAt        DateTime? @map("archived_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  student           User      @relation("StudentDegreeProcess", fields: [studentId], references: [id], onDelete: Restrict)
+  advisor           User?     @relation("AdvisorDegreeProcess", fields: [advisorId], references: [id], onDelete: SetNull)
+  modality          DegreeModality @relation(fields: [modalityId], references: [id], onDelete: Restrict)
+  requirementInstances RequirementInstance[]
+
+  @@index([studentId])
+  @@index([advisorId])
+  @@index([status])
+  @@map("degree_processes")
+}
+
+model RequirementInstance {
+  id                    String   @id @default(uuid()) @db.Uuid
+  degreeProcessId       String   @db.Uuid @map("degree_process_id")
+  modalityRequirementId String   @db.Uuid @map("modality_requirement_id")
+  status                DocumentStatus
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  degreeProcess         DegreeProcess @relation(fields: [degreeProcessId], references: [id], onDelete: Cascade)
+  modalityRequirement   ModalityRequirement @relation(fields: [modalityRequirementId], references: [id], onDelete: Restrict)
+  documentVersions      DocumentVersion[]
+  approvals             Approval[]
+  digitalSignatures     DigitalSignature[]
+  observations          Observation[]
+
+  @@unique([degreeProcessId, modalityRequirementId])
+  @@index([degreeProcessId])
+  @@index([status])
+  @@map("requirement_instances")
+}
+
+model DocumentVersion {
+  id                    String   @id @default(uuid()) @db.Uuid
+  requirementInstanceId String   @db.Uuid @map("requirement_instance_id")
+  versionNumber         Int      @map("version_number")
+  fileName              String   @map("file_name")
+  originalFileName      String   @map("original_file_name")
+  mimeType              String   @map("mime_type")
+  fileSizeByte          Int      @map("file_size_byte")
+  storagePath           String   @map("storage_path")
+  hashSha256            String   @map("hash_sha256")
+  uploadedById          String   @db.Uuid @map("uploaded_by_id")
+  uploadedAt            DateTime @map("uploaded_at")
+  comment               String?
+
+  // Relations
+  requirementInstance   RequirementInstance @relation(fields: [requirementInstanceId], references: [id], onDelete: Cascade)
+  uploadedBy            User     @relation("UploadedByUser", fields: [uploadedById], references: [id], onDelete: Restrict)
+  approvals             Approval[]
+  digitalSignatures     DigitalSignature[]
+  observations          Observation[]
+
+  @@index([requirementInstanceId])
+  @@map("document_versions")
+}
+
+model Approval {
+  id                    String   @id @default(uuid()) @db.Uuid
+  requirementInstanceId String   @db.Uuid @map("requirement_instance_id")
+  documentVersionId     String   @db.Uuid @map("document_version_id")
+  approverUserId        String   @db.Uuid @map("approver_user_id")
+  type                  ApprovalType
+  decision              ApprovalDecision
+  observations          String?
+  approvedAt            DateTime @map("approved_at")
+
+  // Relations
+  requirementInstance   RequirementInstance @relation(fields: [requirementInstanceId], references: [id], onDelete: Cascade)
+  documentVersion       DocumentVersion @relation(fields: [documentVersionId], references: [id], onDelete: Cascade)
+  approverUser          User     @relation("ApproverUser", fields: [approverUserId], references: [id], onDelete: Restrict)
+
+  @@map("approvals")
+}
+
+model DigitalSignature {
+  id                    String   @id @default(uuid()) @db.Uuid
+  requirementInstanceId String   @db.Uuid @map("requirement_instance_id")
+  documentVersionId     String   @db.Uuid @map("document_version_id")
+  signedById            String   @db.Uuid @map("signed_by_id")
+  signatureHash         String   @map("signature_hash")
+  certificateSerial     String?  @map("certificate_serial")
+  signedDocumentPath    String?  @map("signed_document_path")
+  timestamp             DateTime
+  metadata              Json?
+
+  // Relations
+  requirementInstance   RequirementInstance @relation(fields: [requirementInstanceId], references: [id], onDelete: Cascade)
+  documentVersion       DocumentVersion @relation(fields: [documentVersionId], references: [id], onDelete: Cascade)
+  signedBy              User     @relation("SignedByUser", fields: [signedById], references: [id], onDelete: Restrict)
+
+  @@map("digital_signatures")
+}
+
+model Observation {
+  id                    String   @id @default(uuid()) @db.Uuid
+  requirementInstanceId String   @db.Uuid @map("requirement_instance_id")
+  documentVersionId     String?  @db.Uuid @map("document_version_id")
+  authorId              String   @db.Uuid @map("author_id")
+  content               String
+  isResolved            Boolean  @default(false) @map("is_resolved")
+  resolvedAt            DateTime? @map("resolved_at")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  // Relations
+  requirementInstance   RequirementInstance @relation(fields: [requirementInstanceId], references: [id], onDelete: Cascade)
+  documentVersion       DocumentVersion?    @relation(fields: [documentVersionId], references: [id], onDelete: SetNull)
+  author                User     @relation("AuthorObservation", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@map("observations")
+}
+
+model Notification {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid @map("user_id")
+  type        NotificationType
+  title       String
+  message     String
+  isRead      Boolean  @default(false) @map("is_read")
+  readAt      DateTime? @map("read_at")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @db.Uuid @map("user_id")
+  userRole    String?  @map("user_role")
+  action      String
+  entity      String
+  entityId    String   @map("entity_id")
+  previousValue Json?  @map("previous_value")
+  newValue    Json?    @map("new_value")
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  timestamp   DateTime @default(now())
+
+  // Relations
+  user        User?    @relation("UserAuditEvent", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([timestamp])
+  @@map("audit_events")
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid @map("user_id")
+  token        String   @unique
+  refreshToken String?  @unique @map("refresh_token")
+  expiresAt    DateTime @map("expires_at")
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}

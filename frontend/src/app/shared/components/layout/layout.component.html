@@ -1,0 +1,163 @@
+<div class="layout-wrapper" (click)="closeDropdowns()">
+  <!-- Mobile overlay -->
+  @if (mobileMenuOpen()) {
+    <div class="mobile-overlay" (click)="toggleMobileMenu()"></div>
+  }
+
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()" [class.mobile-open]="mobileMenuOpen()">
+    <!-- Logo -->
+    <div class="sidebar-header">
+      <div class="logo-container">
+        <div class="logo-icon">
+          <i class="pi pi-graduation-cap"></i>
+        </div>
+        @if (!sidebarCollapsed()) {
+          <div class="logo-text">
+            <span class="logo-title">ITP Grados</span>
+            <span class="logo-subtitle">Plataforma Académica</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      @for (item of menuItems(); track item.routerLink) {
+        <a
+          class="nav-item"
+          [routerLink]="item.routerLink"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.routerLink === '/dashboard' }"
+          (click)="mobileMenuOpen() && toggleMobileMenu()"
+          [title]="sidebarCollapsed() ? item.label : ''"
+        >
+          <i [class]="item.icon"></i>
+          @if (!sidebarCollapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+          }
+          @if (item.badge && item.badge > 0 && !sidebarCollapsed()) {
+            <span class="nav-badge">{{ item.badge }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Sidebar footer -->
+    <div class="sidebar-footer">
+      <button class="collapse-btn" (click)="toggleSidebar(); $event.stopPropagation()">
+        <i class="pi" [class.pi-chevron-left]="!sidebarCollapsed()" [class.pi-chevron-right]="sidebarCollapsed()"></i>
+        @if (!sidebarCollapsed()) {
+          <span>Colapsar</span>
+        }
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content area -->
+  <div class="main-area" [class.sidebar-collapsed]="sidebarCollapsed()">
+    <!-- Header -->
+    <header class="top-header">
+      <div class="header-left">
+        <button class="mobile-menu-btn" (click)="toggleMobileMenu(); $event.stopPropagation()">
+          <i class="pi pi-bars"></i>
+        </button>
+        <div class="breadcrumb">
+          <span class="breadcrumb-text">Instituto Tecnológico del Putumayo</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Notifications -->
+        <div class="header-action" (click)="toggleNotifications(); $event.stopPropagation()">
+          <button class="icon-btn">
+            <i class="pi pi-bell"></i>
+            @if (unreadCount() > 0) {
+              <span class="notification-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+            }
+          </button>
+
+          @if (notificationPanelOpen()) {
+            <div class="dropdown-panel notification-panel" (click)="$event.stopPropagation()">
+              <div class="panel-header">
+                <h4>Notificaciones</h4>
+                @if (unreadCount() > 0) {
+                  <button class="text-btn" (click)="markAllRead()">Marcar todas como leídas</button>
+                }
+              </div>
+              <div class="panel-body">
+                @if (notifications().length === 0) {
+                  <div class="empty-state-small">
+                    <i class="pi pi-bell-slash"></i>
+                    <p>No hay notificaciones</p>
+                  </div>
+                } @else {
+                  @for (notif of notifications().slice(0, 8); track notif.id) {
+                    <div class="notification-item" [class.unread]="!notif.isRead" (click)="markNotificationRead(notif.id)">
+                      <div class="notif-icon">
+                        <i class="pi pi-info-circle"></i>
+                      </div>
+                      <div class="notif-content">
+                        <p class="notif-title">{{ notif.title }}</p>
+                        <p class="notif-message">{{ notif.message }}</p>
+                        <span class="notif-time">{{ notif.createdAt | date:'short' }}</span>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- User menu -->
+        <div class="header-action" (click)="toggleUserMenu(); $event.stopPropagation()">
+          <button class="user-btn">
+            <div class="avatar">
+              <span>{{ getUserInitials() }}</span>
+            </div>
+            @if (currentUser(); as user) {
+              <div class="user-info">
+                <span class="user-name">{{ user.firstName }}</span>
+                <span class="user-role">{{ getRoleLabel(user.role) }}</span>
+              </div>
+            }
+            <i class="pi pi-chevron-down"></i>
+          </button>
+
+          @if (userMenuOpen()) {
+            <div class="dropdown-panel user-panel" (click)="$event.stopPropagation()">
+              @if (currentUser(); as user) {
+                <div class="user-panel-header">
+                  <div class="avatar avatar-lg">
+                    <span>{{ getUserInitials() }}</span>
+                  </div>
+                  <div>
+                    <p class="user-panel-name">{{ user.firstName }}</p>
+                    <p class="user-panel-email">{{ user.email }}</p>
+                    <span class="role-badge">{{ getRoleLabel(user.role) }}</span>
+                  </div>
+                </div>
+              }
+              <div class="panel-divider"></div>
+              <a class="panel-action" routerLink="/profile">
+                <i class="pi pi-user"></i>
+                <span>Mi Perfil</span>
+              </a>
+              <div class="panel-divider"></div>
+              <button class="panel-action danger" (click)="logout()">
+                <i class="pi pi-sign-out"></i>
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

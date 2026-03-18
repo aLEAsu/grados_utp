@@ -1,0 +1,202 @@
+<div class="process-list-container">
+  <div class="list-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        @switch (viewType()) {
+          @case ('my-process') { Mis Procesos }
+          @case ('assigned') { Procesos Asignados }
+          @case ('all') { Todos los Procesos }
+        }
+      </h1>
+      @if (userRole() === 'STUDENT') {
+        <a routerLink="/process/new" class="btn btn-primary btn-new">
+          <span class="btn-icon">+</span>
+          Nueva Inscripción
+        </a>
+      }
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="search-bar">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar por título, estudiante..."
+        [value]="searchQuery()"
+        (input)="onSearchChange($any($event.target).value)"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-item">
+        <label for="status-filter" class="filter-label">Estado</label>
+        <select
+          id="status-filter"
+          class="filter-select"
+          [value]="selectedStatus()"
+          (change)="onStatusChange($any($event.target).value)"
+        >
+          <option value="">Todos los estados</option>
+          @for (status of statusOptions; track status) {
+            <option [value]="status">{{ statusLabels[status] }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="modality-filter" class="filter-label">Modalidad</label>
+        <select
+          id="modality-filter"
+          class="filter-select"
+          [value]="selectedModality()"
+          (change)="onModalityChange($any($event.target).value)"
+        >
+          <option value="">Todas las modalidades</option>
+          @for (modality of modalityOptions; track modality) {
+            <option [value]="modality">{{ modalityLabels[modality] }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando procesos...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <p class="error-message">{{ error() }}</p>
+      <button class="btn btn-secondary" (click)="loadProcesses()">Intentar de nuevo</button>
+    </div>
+  } @else {
+    <!-- Table View -->
+    <div class="table-wrapper">
+      @if (filteredProcesses().length > 0) {
+        <table class="processes-table">
+          <thead>
+            <tr class="table-header">
+              <th class="col-title">Título</th>
+              <th class="col-modality">Modalidad</th>
+              @if (viewType() !== 'my-process') {
+                <th class="col-student">Estudiante</th>
+              }
+              @if (viewType() === 'assigned') {
+                <th class="col-advisor">Asesor</th>
+              }
+              <th class="col-status">Estado</th>
+              <th class="col-date">Fecha de inicio</th>
+              <th class="col-actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (process of filteredProcesses(); track process.id) {
+              <tr class="table-row" [class.row-highlighted]="process.status === 'IN_REVIEW'">
+                <td class="col-title">
+                  <span class="title-text">{{ process.title }}</span>
+                </td>
+                <td class="col-modality">
+                  <span class="modality-tag">{{ modalityLabels[process.modality?.code || 'THESIS'] }}</span>
+                </td>
+                @if (viewType() !== 'my-process') {
+                  <td class="col-student">
+                    <span class="student-name">
+                      {{ process.student?.firstName }} {{ process.student?.lastName }}
+                    </span>
+                  </td>
+                }
+                @if (viewType() === 'assigned') {
+                  <td class="col-advisor">
+                    <span class="advisor-name">
+                      {{ process.advisor?.firstName }} {{ process.advisor?.lastName || 'No asignado' }}
+                    </span>
+                  </td>
+                }
+                <td class="col-status">
+                  <span [class]="getStatusBadgeClass(process.status)">
+                    {{ statusLabels[process.status] }}
+                  </span>
+                </td>
+                <td class="col-date">
+                  <span class="date-text">{{ process.startedAt | date: 'dd/MM/yyyy' }}</span>
+                </td>
+                <td class="col-actions">
+                  <div class="action-buttons">
+                    <a [routerLink]="['/process', process.id]" class="btn-action btn-view" title="Ver detalles">
+                      👁️
+                    </a>
+                    @if (canEditProcess(process)) {
+                      <button class="btn-action btn-edit" title="Editar" (click)="$event.preventDefault()">
+                        ✏️
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination-section">
+          <button
+            class="btn-pagination"
+            [disabled]="currentPage() === 1"
+            (click)="goToPage(currentPage() - 1)"
+          >
+            ← Anterior
+          </button>
+
+          <div class="page-numbers">
+            @for (page of getPaginationPages(); track page) {
+              @if (page === -1) {
+                <span class="ellipsis">...</span>
+              } @else {
+                <button
+                  [class.active]="page === currentPage()"
+                  class="page-btn"
+                  (click)="goToPage(page)"
+                >
+                  {{ page }}
+                </button>
+              }
+            }
+          </div>
+
+          <button
+            class="btn-pagination"
+            [disabled]="currentPage() === totalPages()"
+            (click)="goToPage(currentPage() + 1)"
+          >
+            Siguiente →
+          </button>
+        </div>
+
+        <div class="pagination-info">
+          Mostrando {{ (currentPage() - 1) * pageSize() + 1 }} a
+          {{ Math.min(currentPage() * pageSize(), totalItems()) }} de {{ totalItems() }} procesos
+        </div>
+      } @else {
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <h3 class="empty-title">No hay procesos</h3>
+          <p class="empty-description">
+            @switch (viewType()) {
+              @case ('my-process') { No has iniciado ningún proceso aún. }
+              @case ('assigned') { No tienes procesos asignados. }
+              @case ('all') { No hay procesos que coincidan con los filtros. }
+            }
+          </p>
+          @if (viewType() === 'my-process' && userRole() === 'STUDENT') {
+            <a routerLink="/process/new" class="btn btn-primary">Crear nuevo proceso</a>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
