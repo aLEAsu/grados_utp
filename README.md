@@ -1,4 +1,4 @@
-# Plataforma de Gestión de Grados - ITP
+# Plataforma de Gestión de Grados - UTP
 
 Sistema de gestión integral de procesos de titulación para el Instituto Universitario del Putumayo.
 
