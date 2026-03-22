@@ -1,8 +1,15 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, interval, switchMap } from 'rxjs';
+import { Observable, Subscription, tap, map, interval, switchMap } from 'rxjs';
 import { environment } from '@environments/environment';
 import { Notification } from '../models/notification.model';
+
+interface PaginatedResponse {
+  data: Notification[];
+  total?: number;
+  page?: number;
+  limit?: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -10,14 +17,16 @@ export class NotificationService {
   private notificationsSignal = signal<Notification[]>([]);
 
   readonly notifications = this.notificationsSignal.asReadonly();
-  readonly unreadCount = computed(() =>
-    this.notificationsSignal().filter(n => !n.isRead).length
-  );
+  readonly unreadCount = computed(() => {
+    const list = this.notificationsSignal();
+    return Array.isArray(list) ? list.filter(n => !n.isRead).length : 0;
+  });
 
   constructor(private http: HttpClient) {}
 
   loadNotifications(): Observable<Notification[]> {
-    return this.http.get<Notification[]>(this.apiUrl).pipe(
+    return this.http.get<Notification[] | PaginatedResponse>(this.apiUrl).pipe(
+      map(response => Array.isArray(response) ? response : (response?.data ?? [])),
       tap(notifications => this.notificationsSignal.set(notifications))
     );
   }
@@ -42,9 +51,9 @@ export class NotificationService {
     );
   }
 
-  startPolling(intervalMs: number = 30000): void {
-    interval(intervalMs).pipe(
+  startPolling(intervalMs: number = 30000): Subscription {
+    return interval(intervalMs).pipe(
       switchMap(() => this.loadNotifications())
-    ).subscribe();
+    ).subscribe({ error: () => {} });
   }
 }

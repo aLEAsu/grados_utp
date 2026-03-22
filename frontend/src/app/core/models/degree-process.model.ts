@@ -36,7 +36,7 @@ export enum ApprovalDecision {
 
 export interface DegreeModality {
   id: string;
-  code: DegreeModalityCode;
+  code: string;
   name: string;
   description: string;
   isActive: boolean;
@@ -92,6 +92,7 @@ export interface RequirementInstance {
   updatedAt: string;
   modalityRequirement?: ModalityRequirement;
   documentVersions?: DocumentVersion[];
+  approvals?: Approval[];
 }
 
 export interface DocumentVersion {

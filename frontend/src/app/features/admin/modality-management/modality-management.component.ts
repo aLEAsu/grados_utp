@@ -20,6 +20,7 @@ export class ModalityManagementComponent implements OnInit {
   searchTerm = '';
   expandedId: string | null = null;
 
+
   // Create/Edit modality
   showCreateModal = signal(false);
   editingModality = signal<DegreeModality | null>(null);
@@ -109,7 +110,7 @@ export class ModalityManagementComponent implements OnInit {
     const editing = this.editingModality();
 
     if (editing) {
-      this.adminService.updateModality(editing.id, this.modalityForm).subscribe({
+      this.adminService.updateModality(editing.id, this.modalityForm as any).subscribe({
         next: () => {
           this.saving.set(false);
           this.showCreateModal.set(false);
@@ -122,7 +123,7 @@ export class ModalityManagementComponent implements OnInit {
         }
       });
     } else {
-      this.adminService.createModality(this.modalityForm).subscribe({
+      this.adminService.createModality(this.modalityForm as any).subscribe({
         next: () => {
           this.saving.set(false);
           this.showCreateModal.set(false);

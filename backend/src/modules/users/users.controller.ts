@@ -71,26 +71,8 @@ export class UsersController {
     return this.usersService.updateProfile(user.sub, dto);
   }
 
-  @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Get user by ID',
-    description: 'Retrieve user information by ID. Admin/Secretary only.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'User retrieved successfully',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async getUserById(@Param('id') userId: string) {
-    return this.usersService.getUserById(userId);
-  }
-
   @Get('advisors/available')
-  @Roles(UserRole.SECRETARY, UserRole.ADMIN)
+  @Roles(UserRole.SECRETARY, UserRole.ADMIN, UserRole.SUPERADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get available advisors',
@@ -105,6 +87,24 @@ export class UsersController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   async getAvailableAdvisors() {
     return this.usersService.getAvailableAdvisors();
+  }
+
+  @Get(':id')
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.SUPERADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get user by ID',
+    description: 'Retrieve user information by ID. Admin/Secretary only.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getUserById(@Param('id') userId: string) {
+    return this.usersService.getUserById(userId);
   }
 
   @Post('me/student-profile')

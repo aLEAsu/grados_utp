@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx ng:*)",
+      "Bash(node_modules.binng build:*)",
+      "Bash(./node_modules/.bin/ng build:*)",
+      "Bash(npm view:*)",
+      "Bash(python -c \"import sys,json; v=json.load\\(sys.stdin\\); print\\(''''schedule versions:'''', [x for x in v if x.startswith\\(''''4''''\\) or x.startswith\\(''''3''''\\) or x.startswith\\(''''5''''\\)]\\)\")",
+      "Bash(npm install:*)",
+      "Bash(curl -s http://localhost:3000/api/v1/health)",
+      "Bash(curl -s http://localhost:3000/)"
+    ]
+  }
+}

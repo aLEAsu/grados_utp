@@ -44,6 +44,31 @@ export class DegreeProcessService {
   }
 
   /**
+   * Get all available degree modalities
+   * Used by students during process creation
+   */
+  async getModalities() {
+    const modalities = await this.prisma.degreeModality.findMany({
+      where: { isActive: true },
+      include: {
+        modalityRequirements: {
+          include: {
+            documentType: true,
+          },
+          orderBy: { displayOrder: 'asc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Map modalityRequirements → requirements for frontend compatibility
+    return modalities.map(({ modalityRequirements, ...rest }) => ({
+      ...rest,
+      requirements: modalityRequirements,
+    }));
+  }
+
+  /**
    * Create a new degree process
    * Student inscription starts in DRAFT status with auto-generated requirements
    *
@@ -180,12 +205,28 @@ export class DegreeProcessService {
         },
         requirementInstances: {
           include: {
-            modalityRequirement: true,
-            documentVersions: { orderBy: { createdAt: 'desc' } },
-            approvals: true,
+            modalityRequirement: {
+              include: {
+                documentType: true,
+              },
+            },
+            documentVersions: {
+              orderBy: { uploadedAt: 'desc' },
+              include: {
+                uploadedBy: {
+                  select: { id: true, firstName: true, lastName: true },
+                },
+              },
+            },
+            approvals: {
+              include: {
+                approverUser: {
+                  select: { id: true, firstName: true, lastName: true },
+                },
+              },
+            },
           },
         },
-        approvals: { orderBy: { createdAt: 'desc' } },
       },
     });
 
@@ -339,12 +380,10 @@ export class DegreeProcessService {
 
     return {
       data: processes,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     };
   }
 

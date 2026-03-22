@@ -1,4 +1,4 @@
-<div class="layout-wrapper" (click)="closeDropdowns()">
+<div class="layout-wrapper">
   <!-- Mobile overlay -->
   @if (mobileMenuOpen()) {
     <div class="mobile-overlay" (click)="toggleMobileMenu()"></div>
@@ -45,7 +45,7 @@
 
     <!-- Sidebar footer -->
     <div class="sidebar-footer">
-      <button class="collapse-btn" (click)="toggleSidebar(); $event.stopPropagation()">
+      <button class="collapse-btn" (click)="toggleSidebar()">
         <i class="pi" [class.pi-chevron-left]="!sidebarCollapsed()" [class.pi-chevron-right]="sidebarCollapsed()"></i>
         @if (!sidebarCollapsed()) {
           <span>Colapsar</span>
@@ -59,7 +59,7 @@
     <!-- Header -->
     <header class="top-header">
       <div class="header-left">
-        <button class="mobile-menu-btn" (click)="toggleMobileMenu(); $event.stopPropagation()">
+        <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
           <i class="pi pi-bars"></i>
         </button>
         <div class="breadcrumb">
@@ -69,8 +69,8 @@
 
       <div class="header-right">
         <!-- Notifications -->
-        <div class="header-action" (click)="toggleNotifications(); $event.stopPropagation()">
-          <button class="icon-btn">
+        <div class="header-action">
+          <button class="icon-btn" (click)="toggleNotifications($event)">
             <i class="pi pi-bell"></i>
             @if (unreadCount() > 0) {
               <span class="notification-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
@@ -111,8 +111,8 @@
         </div>
 
         <!-- User menu -->
-        <div class="header-action" (click)="toggleUserMenu(); $event.stopPropagation()">
-          <button class="user-btn">
+        <div class="header-action">
+          <button class="user-btn" (click)="toggleUserMenu($event)">
             <div class="avatar">
               <span>{{ getUserInitials() }}</span>
             </div>

@@ -77,7 +77,7 @@ export class DegreeProcessController {
    * Only accessible to secretaries and admins
    */
   @Get()
-  @Roles(UserRole.SECRETARY, UserRole.ADMIN)
+  @Roles(UserRole.SECRETARY, UserRole.ADMIN, UserRole.SUPERADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get all degree processes',
@@ -127,6 +127,23 @@ export class DegreeProcessController {
   }
 
   /**
+   * Get all available modalities
+   * Accessible to students to select during process creation
+   */
+  @Get('modalities')
+  @Roles(UserRole.STUDENT, UserRole.ADVISOR, UserRole.SECRETARY, UserRole.ADMIN, UserRole.SUPERADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get available degree modalities',
+    description: 'Retrieve all active degree modalities. Accessible to all authenticated users.',
+  })
+  @ApiResponse({ status: 200, description: 'Modalities retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getModalities() {
+    return this.degreeProcessService.getModalities();
+  }
+
+  /**
    * Get a specific degree process by ID
    * Permission-based access control
    */
@@ -160,7 +177,7 @@ export class DegreeProcessController {
    * Secretary/Admin only
    */
   @Patch(':id/assign-advisor')
-  @Roles(UserRole.SECRETARY, UserRole.ADMIN)
+  @Roles(UserRole.SECRETARY, UserRole.ADMIN, UserRole.SUPERADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Assign advisor to process',

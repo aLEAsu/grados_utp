@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { User, UserRole } from '@prisma/client';
+import { User, UserRole, AcademicStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 
@@ -50,18 +50,34 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(dto.password, 12);
 
-    // Create user
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        passwordHash: hashedPassword,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phone: dto.phone,
-        role: UserRole.STUDENT, // Default role for local registration
-        emailVerified: false,
-        isActive: true,
-      },
+    // Create user and student profile in a single transaction
+    const user = await this.prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          email: dto.email,
+          passwordHash: hashedPassword,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          phone: dto.phone,
+          role: UserRole.STUDENT, // Default role for local registration
+          emailVerified: false,
+          isActive: true,
+        },
+      });
+
+      await tx.studentProfile.create({
+        data: {
+          userId: createdUser.id,
+          studentCode: dto.studentCode,
+          program: dto.program,
+          faculty: dto.faculty ?? 'Por definir',
+          semester: dto.semester ?? 1,
+          academicStatus: AcademicStatus.ACTIVE,
+          hasCompletedSubjects: true,
+        },
+      });
+
+      return createdUser;
     });
 
     // TODO: Send verification email here
@@ -229,16 +245,33 @@ export class AuthService {
     const firstName = profile.name?.givenName || profile.displayName || 'User';
     const lastName = profile.name?.familyName || '';
 
-    user = await this.prisma.user.create({
-      data: {
-        email,
-        googleId,
-        firstName,
-        lastName,
-        role: UserRole.STUDENT, // Default role for Google OAuth
-        emailVerified: true, // Google verified the email
-        isActive: true,
-      },
+    user = await this.prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          email,
+          googleId,
+          firstName,
+          lastName,
+          role: UserRole.STUDENT,
+          emailVerified: true,
+          isActive: true,
+        },
+      });
+
+      const baseCode = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      await tx.studentProfile.create({
+        data: {
+          userId: createdUser.id,
+          studentCode: `${baseCode}-${createdUser.id.substring(0, 6).toUpperCase()}`,
+          program: 'Por definir',
+          faculty: 'Por definir',
+          semester: 1,
+          academicStatus: AcademicStatus.ACTIVE,
+          hasCompletedSubjects: true,
+        },
+      });
+
+      return createdUser;
     });
 
     return user;

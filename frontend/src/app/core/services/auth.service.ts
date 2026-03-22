@@ -39,6 +39,8 @@ export class AuthService {
     firstName: string;
     lastName: string;
     phone?: string;
+    studentCode: string;
+    program: string;
   }): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}/register`, data);
   }

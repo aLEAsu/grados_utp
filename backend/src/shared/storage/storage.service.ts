@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import * as Express from 'express';
 
 export interface FileUploadResult {
   storagePath: string;
@@ -69,7 +68,7 @@ export class StorageService {
         fileSizeBytes: file.size,
       };
     } catch (error) {
-      this.logger.error(`Failed to upload file: ${error.message}`);
+      this.logger.error(`Failed to upload file: ${(error as any).message}`);
       throw error;
     }
   }

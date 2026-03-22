@@ -1,13 +1,14 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { User, UserRole } from '../../../core/models/user.model';
 import { AdminService } from '../../../core/services/admin.service';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.css'
 })
@@ -19,6 +20,7 @@ export class UserManagementComponent implements OnInit {
   filterRole: string = 'all';
   filterStatus: string = 'all';
   processingId: string | null = null;
+  roleChangingId: string | null = null;
   currentPage = 1;
   totalPages = 1;
   total = 0;
@@ -129,5 +131,26 @@ export class UserManagementComponent implements OnInit {
 
   getInitials(user: User): string {
     return ((user.firstName?.charAt(0) || '') + (user.lastName?.charAt(0) || '')).toUpperCase();
+  }
+
+  changeRole(user: User, newRole: UserRole): void {
+    if (newRole === user.role || this.roleChangingId) return;
+
+    this.roleChangingId = user.id;
+    this.adminService.changeUserRole(user.id, newRole).subscribe({
+      next: (updated) => {
+        this.users.update(users =>
+          users.map(u => u.id === user.id ? { ...u, role: updated.role as UserRole } : u)
+        );
+        this.roleChangingId = null;
+      },
+      error: (err) => {
+        console.error('Error al cambiar rol:', err);
+        this.error.set('Error al cambiar el rol del usuario.');
+        this.roleChangingId = null;
+        // Recargar para restaurar el estado real
+        this.loadUsers();
+      }
+    });
   }
 }
