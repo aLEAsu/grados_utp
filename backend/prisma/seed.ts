@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, DegreeModalityCode } from '@prisma/client';
+import { PrismaClient, UserRole, AcademicStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -9,44 +9,44 @@ async function main() {
   // Seed Degree Modalities
   console.log('Seeding degree modalities...');
   const modalityTesis = await prisma.degreeModality.upsert({
-    where: { code: DegreeModalityCode.THESIS },
+    where: { code: 'THESIS' },
     update: {},
     create: {
       name: 'Tesis',
-      code: DegreeModalityCode.THESIS,
+      code: 'THESIS',
       description: 'Modalidad de grado mediante elaboración de tesis',
       isActive: true,
     },
   });
 
   const modalityPasantias = await prisma.degreeModality.upsert({
-    where: { code: DegreeModalityCode.INTERNSHIP },
+    where: { code: 'INTERNSHIP' },
     update: {},
     create: {
       name: 'Pasantías',
-      code: DegreeModalityCode.INTERNSHIP,
+      code: 'INTERNSHIP',
       description: 'Modalidad de grado mediante pasantías profesionales',
       isActive: true,
     },
   });
 
   const modalityLineasInvestigacion = await prisma.degreeModality.upsert({
-    where: { code: DegreeModalityCode.RESEARCH_LINE },
+    where: { code: 'RESEARCH_LINE' },
     update: {},
     create: {
       name: 'Líneas de Investigación',
-      code: DegreeModalityCode.RESEARCH_LINE,
+      code: 'RESEARCH_LINE',
       description: 'Modalidad de grado mediante participación en líneas de investigación',
       isActive: true,
     },
   });
 
   const modalityDiplomados = await prisma.degreeModality.upsert({
-    where: { code: DegreeModalityCode.DIPLOMA },
+    where: { code: 'DIPLOMA' },
     update: {},
     create: {
       name: 'Diplomados',
-      code: DegreeModalityCode.DIPLOMA,
+      code: 'DIPLOMA',
       description: 'Modalidad de grado mediante diplomados especializados',
       isActive: true,
     },
@@ -320,6 +320,81 @@ async function main() {
       institutionalEmail: 'secretaria@itp.edu.co',
     },
   });
+
+  // Seed Student user with profile
+  console.log('Seeding student user...');
+  const studentPasswordHash = await bcrypt.hash('Student@2024', 10);
+  const studentUser = await prisma.user.upsert({
+    where: { email: 'estudiante@itp.edu.co' },
+    update: {},
+    create: {
+      email: 'estudiante@itp.edu.co',
+      passwordHash: studentPasswordHash,
+      firstName: 'Carlos',
+      lastName: 'Pérez',
+      role: UserRole.STUDENT,
+      isActive: true,
+      emailVerified: true,
+      institutionalEmail: 'estudiante@itp.edu.co',
+    },
+  });
+
+  await prisma.studentProfile.upsert({
+    where: { userId: studentUser.id },
+    update: {},
+    create: {
+      userId: studentUser.id,
+      studentCode: '2020150001',
+      program: 'Ingeniería de Sistemas',
+      faculty: 'Ingeniería',
+      semester: 10,
+      academicStatus: AcademicStatus.ACTIVE,
+      hasCompletedSubjects: true,
+    },
+  });
+
+  // Seed Advisor user
+  console.log('Seeding advisor user...');
+  const advisorPasswordHash = await bcrypt.hash('Advisor@2024', 10);
+  await prisma.user.upsert({
+    where: { email: 'asesor@itp.edu.co' },
+    update: {},
+    create: {
+      email: 'asesor@itp.edu.co',
+      passwordHash: advisorPasswordHash,
+      firstName: 'Dr. Juan',
+      lastName: 'García',
+      role: UserRole.ADVISOR,
+      isActive: true,
+      emailVerified: true,
+      institutionalEmail: 'asesor@itp.edu.co',
+    },
+  });
+
+  // Fix existing STUDENT users that have no studentProfile
+  console.log('Fixing existing students without profile...');
+  const studentsWithoutProfile = await prisma.user.findMany({
+    where: {
+      role: UserRole.STUDENT,
+      studentProfile: null,
+    },
+  });
+
+  for (const student of studentsWithoutProfile) {
+    const baseCode = student.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    await prisma.studentProfile.create({
+      data: {
+        userId: student.id,
+        studentCode: `${baseCode}-${student.id.substring(0, 6).toUpperCase()}`,
+        program: 'Por definir',
+        faculty: 'Por definir',
+        semester: 1,
+        academicStatus: AcademicStatus.ACTIVE,
+        hasCompletedSubjects: true,
+      },
+    });
+    console.log(`  → Created profile for: ${student.email}`);
+  }
 
   console.log('Database seed completed successfully!');
 }

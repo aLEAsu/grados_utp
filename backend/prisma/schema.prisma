@@ -36,14 +36,7 @@ enum AcademicStatus {
   @@map("academic_status")
 }
 
-enum DegreeModalityCode {
-  THESIS
-  INTERNSHIP
-  RESEARCH_LINE
-  DIPLOMA
-
-  @@map("degree_modality_code")
-}
+// DegreeModalityCode removed: codes are now free-form strings
 
 enum ProcessStatus {
   DRAFT
@@ -167,7 +160,7 @@ model AdvisorProfile {
 model DegreeModality {
   id          String   @id @default(uuid()) @db.Uuid
   name        String   @unique
-  code        DegreeModalityCode @unique
+  code        String   @unique
   description String
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at")

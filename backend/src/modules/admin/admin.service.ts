@@ -75,34 +75,49 @@ export class AdminService {
    * Get all modalities
    */
   async getModalities() {
-    return this.prisma.degreeModality.findMany({
+    const modalities = await this.prisma.degreeModality.findMany({
       include: {
         modalityRequirements: {
           include: {
             documentType: true,
           },
+          orderBy: { displayOrder: 'asc' },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    // Map modalityRequirements → requirements for frontend compatibility
+    return modalities.map(({ modalityRequirements, ...rest }) => ({
+      ...rest,
+      requirements: modalityRequirements,
+    }));
   }
 
   /**
    * Create a new modality
    */
   async createModality(dto: CreateModalityDto) {
-    const existingModality = await this.prisma.degreeModality.findUnique({
-      where: { code: dto.code },
+    // Normalize code: uppercase, replace spaces with underscores
+    const normalizedCode = dto.code.trim().toUpperCase().replace(/\s+/g, '_');
+
+    const existingModality = await this.prisma.degreeModality.findFirst({
+      where: {
+        OR: [
+          { name: { equals: dto.name, mode: 'insensitive' } },
+          { code: normalizedCode },
+        ],
+      },
     });
 
     if (existingModality) {
-      throw new BadRequestException('Modality with this code already exists');
+      throw new BadRequestException('Ya existe una modalidad con este nombre o código');
     }
 
     return this.prisma.degreeModality.create({
       data: {
         name: dto.name,
-        code: dto.code as any, // Cast to enum
+        code: normalizedCode,
         description: dto.description,
         isActive: dto.isActive ?? true,
       },
@@ -303,21 +318,24 @@ export class AdminService {
 
     return {
       data: users,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     };
   }
 
   /**
    * Update user role (SUPERADMIN only)
+   * Automatically creates/manages profile based on new role
    */
   async updateUserRole(userId: string, newRole: UserRole) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      include: {
+        studentProfile: true,
+        advisorProfile: true,
+      },
     });
 
     if (!user) {
@@ -327,6 +345,34 @@ export class AdminService {
     // Prevent downgrading superadmin
     if (user.role === UserRole.SUPERADMIN && newRole !== UserRole.SUPERADMIN) {
       throw new ForbiddenException('Cannot downgrade a superadmin user');
+    }
+
+    // Create AdvisorProfile if changing to ADVISOR and doesn't have one
+    if (newRole === UserRole.ADVISOR && !user.advisorProfile) {
+      await this.prisma.advisorProfile.create({
+        data: {
+          userId,
+          department: 'Por asignar',
+          specialization: 'Por asignar',
+          maxActiveProcesses: 5,
+          isAvailable: true,
+        },
+      });
+    }
+
+    // Create StudentProfile if changing to STUDENT and doesn't have one
+    if (newRole === UserRole.STUDENT && !user.studentProfile) {
+      await this.prisma.studentProfile.create({
+        data: {
+          user: { connect: { id: userId } },
+          studentCode: `STU-${Date.now()}`,
+          program: 'Por asignar',
+          faculty: 'Por asignar',
+          semester: 1,
+          hasCompletedSubjects: false,
+          academicStatus: 'ACTIVE',
+        },
+      });
     }
 
     return this.prisma.user.update({

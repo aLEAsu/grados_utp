@@ -66,7 +66,8 @@
   font-size: 14px;
 }
 
-.error-banner button {
+.error-banner button,
+.retry-btn {
   background-color: var(--color-danger);
   color: white;
   border: none;
@@ -76,9 +77,11 @@
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.2s ease;
+  font-family: 'Inter', sans-serif;
 }
 
-.error-banner button:hover {
+.error-banner button:hover,
+.retry-btn:hover {
   background-color: var(--color-danger-light);
 }
 
@@ -103,13 +106,16 @@
   height: 44px;
 }
 
-.search-bar::before {
-  content: '🔍';
+/* .search-bar::before removed — HTML already has <i class="pi pi-search search-icon"> */
+
+.search-icon {
+  color: var(--color-text-muted);
+  font-size: 16px;
   margin-right: var(--spacing-sm);
-  font-size: 18px;
-  opacity: 0.6;
+  flex-shrink: 0;
 }
 
+.search-input,
 .search-bar input {
   flex: 1;
   border: none;
@@ -117,8 +123,10 @@
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   color: var(--color-text-primary);
+  background: transparent;
 }
 
+.search-input::placeholder,
 .search-bar input::placeholder {
   color: var(--color-text-muted);
 }
@@ -347,8 +355,6 @@
 }
 
 .toggle-track {
-  appearance: none;
-  -webkit-appearance: none;
   width: 44px;
   height: 24px;
   border-radius: 12px;
@@ -356,11 +362,17 @@
   cursor: pointer;
   position: relative;
   transition: background-color 0.2s ease;
-  border: none;
+  flex-shrink: 0;
 }
 
-.toggle-track:checked {
+/* HTML uses [class.active]="user.isActive" on a div — use .active, not :checked */
+.toggle-track.active {
   background-color: var(--color-success);
+}
+
+.toggle-track.processing {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .toggle-thumb {
@@ -372,15 +384,44 @@
   top: 2px;
   left: 2px;
   transition: left 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
-.toggle-track:checked + .toggle-thumb {
+.toggle-track.active .toggle-thumb {
   left: 22px;
 }
 
-.toggle-track:disabled {
+/* Role Select Inline */
+.role-select {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  background-color: #f8fafc;
+  color: var(--color-text-primary);
+  transition: border-color 0.2s ease;
+  max-width: 140px;
+}
+
+.role-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+}
+
+.role-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Role change success indicator */
+.role-saving {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-family: 'Inter', sans-serif;
 }
 
 .status-label {

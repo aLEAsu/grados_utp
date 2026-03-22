@@ -78,7 +78,7 @@ export class ProfileComponent implements OnInit {
     if (user.studentProfile) {
       this.studentCode = user.studentProfile.studentCode;
       this.program = user.studentProfile.program;
-      this.faculty = user.studentProfile.faculty || '';
+      this.faculty = (user.studentProfile as any).faculty || '';
       this.semester = user.studentProfile.semester;
     }
 

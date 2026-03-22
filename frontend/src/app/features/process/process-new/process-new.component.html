@@ -54,7 +54,7 @@
         </div>
       } @else {
         <div class="modalities-grid">
-          @for (card of modalityCards; track card.code) {
+          @for (card of modalityCards(); track card.code) {
             <button
               class="modality-card"
               [class.selected]="selectedModality() === card.code"
@@ -183,7 +183,7 @@
           type="button"
           class="btn btn-primary"
           (click)="goToStep(3)"
-          [disabled]="!canProceedToStep3()"
+          [disabled]="!canProceedToStep3"
         >
           Revisar →
         </button>

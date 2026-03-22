@@ -66,7 +66,8 @@
   font-size: 14px;
 }
 
-.error-banner button {
+.error-banner button,
+.retry-btn {
   background-color: var(--color-danger);
   color: white;
   border: none;
@@ -76,9 +77,11 @@
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.2s ease;
+  font-family: 'Inter', sans-serif;
 }
 
-.error-banner button:hover {
+.error-banner button:hover,
+.retry-btn:hover {
   background-color: var(--color-danger-light);
 }
 
@@ -104,13 +107,16 @@
   height: 44px;
 }
 
-.search-bar::before {
-  content: '🔍';
+/* .search-bar::before removed — HTML already has <i class="pi pi-search search-icon"> */
+
+.search-icon {
+  color: var(--color-text-muted);
+  font-size: 16px;
   margin-right: var(--spacing-sm);
-  font-size: 18px;
-  opacity: 0.6;
+  flex-shrink: 0;
 }
 
+.search-input,
 .search-bar input {
   flex: 1;
   border: none;
@@ -118,8 +124,10 @@
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   color: var(--color-text-primary);
+  background: transparent;
 }
 
+.search-input::placeholder,
 .search-bar input::placeholder {
   color: var(--color-text-muted);
 }
@@ -219,16 +227,7 @@
   flex: 1;
 }
 
-.header-left::before {
-  content: '▶';
-  color: var(--color-text-muted);
-  font-size: 12px;
-  transition: transform 0.2s ease;
-}
-
-.review-card.expanded .header-left::before {
-  transform: rotate(90deg);
-}
+/* .header-left::before removed — HTML uses <i class="pi pi-chevron-down/right"> for chevron indicator */
 
 .doc-info {
   display: flex;
@@ -489,6 +488,21 @@
   background-color: var(--color-text-secondary);
 }
 
+.obs-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Inline validation error below textarea */
+.validation-error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 13px;
+  color: var(--color-danger);
+  font-family: 'Inter', sans-serif;
+}
+
 /* Action Buttons */
 .action-buttons {
   display: flex;
@@ -545,6 +559,12 @@
 .action-btn.send-review:hover {
   background-color: var(--color-primary-light);
   box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Responsive Design */

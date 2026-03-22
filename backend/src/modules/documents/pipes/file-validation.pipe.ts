@@ -5,7 +5,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as Express from 'express';
 
 /**
  * File Validation Pipe

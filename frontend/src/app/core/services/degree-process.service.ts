@@ -30,7 +30,10 @@ export class DegreeProcessService {
     page?: number;
     limit?: number;
     status?: string;
-    modalityId?: string;
+    modalityCode?: string;    // Correcto: el backend usa 'modalityCode', no 'modalityId'
+    studentId?: string;
+    advisorId?: string;
+    search?: string;
   }): Observable<PaginatedResponse<DegreeProcess>> {
     let httpParams = new HttpParams();
     if (params) {
@@ -53,16 +56,16 @@ export class DegreeProcessService {
   }
 
   assignAdvisor(processId: string, advisorId: string): Observable<DegreeProcess> {
-    return this.http.patch<DegreeProcess>(`${this.apiUrl}/${processId}/assign-advisor`, { advisorId });
+    return this.http.patch<DegreeProcess>(`${this.apiUrl}/${processId}/assign-advisor`, { advisorUserId: advisorId });
   }
 
   // Modalities
   getModalities(): Observable<DegreeModality[]> {
-    return this.http.get<DegreeModality[]>(`${environment.apiUrl}/admin/modalities`);
+    return this.http.get<DegreeModality[]>(`${this.apiUrl}/modalities`);
   }
 
   getModalityById(id: string): Observable<DegreeModality> {
-    return this.http.get<DegreeModality>(`${environment.apiUrl}/admin/modalities/${id}`);
+    return this.http.get<DegreeModality>(`${this.apiUrl}/modalities/${id}`);
   }
 
   // Requirements

@@ -8,7 +8,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import {
   DegreeProcess,
   ProcessStatus,
-  DegreeModalityCode
 } from '../../../core/models/degree-process.model';
 import { UserRole } from '../../../core/models/user.model';
 import { PaginatedResponse } from '../../../core/models/api-response.model';
@@ -29,7 +28,7 @@ export class ProcessListComponent implements OnInit {
   // Filters
   searchQuery = signal('');
   selectedStatus = signal<ProcessStatus | ''>('');
-  selectedModality = signal<DegreeModalityCode | ''>('');
+  selectedModality = signal<string>('');
 
   // Pagination
   currentPage = signal(1);
@@ -45,7 +44,7 @@ export class ProcessListComponent implements OnInit {
 
     return processes.filter(process => {
       const matchesSearch =
-        process.title.toLowerCase().includes(query) ||
+        process.title?.toLowerCase().includes(query) ||
         process.student?.firstName?.toLowerCase().includes(query) ||
         process.student?.lastName?.toLowerCase().includes(query);
 
@@ -67,18 +66,18 @@ export class ProcessListComponent implements OnInit {
     [ProcessStatus.ARCHIVED]: 'Archivado'
   };
 
-  modalityLabels: Record<DegreeModalityCode, string> = {
-    [DegreeModalityCode.THESIS]: 'Tesis',
-    [DegreeModalityCode.INTERNSHIP]: 'Pasantía',
-    [DegreeModalityCode.RESEARCH_LINE]: 'Línea de Investigación',
-    [DegreeModalityCode.DIPLOMA]: 'Diplomado'
+  modalityLabels: Record<string, string> = {
+    THESIS: 'Tesis',
+    INTERNSHIP: 'Pasantía',
+    RESEARCH_LINE: 'Línea de Investigación',
+    DIPLOMA: 'Diplomado'
   };
 
   readonly UserRole = UserRole;
   readonly Math = Math;
 
   statusOptions = Object.values(ProcessStatus);
-  modalityOptions = Object.values(DegreeModalityCode);
+  modalityOptions: string[] = [];
 
   userRole = computed(() => this.authService.userRole());
   currentUser = computed(() => this.authService.currentUser());
@@ -90,6 +89,16 @@ export class ProcessListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Load modality options dynamically
+    this.processService.getModalities().subscribe({
+      next: (modalities) => {
+        this.modalityOptions = modalities.map(m => m.code);
+        for (const m of modalities) {
+          this.modalityLabels[m.code] = m.name;
+        }
+      }
+    });
+
     this.route.data.subscribe(data => {
       this.viewType.set(data['view'] || 'my-process');
       this.loadProcesses();
@@ -122,7 +131,7 @@ export class ProcessListComponent implements OnInit {
         page: this.currentPage(),
         limit: this.pageSize(),
         ...(this.selectedStatus() && { status: this.selectedStatus() }),
-        ...(this.selectedModality() && { modalityId: this.selectedModality() })
+        ...(this.selectedModality() && { modalityCode: this.selectedModality() })  // Correcto: el backend usa 'modalityCode'
       };
 
       this.processService.getProcesses(params).subscribe({
@@ -160,7 +169,7 @@ export class ProcessListComponent implements OnInit {
     this.loadProcesses();
   }
 
-  onModalityChange(modality: DegreeModalityCode | ''): void {
+  onModalityChange(modality: string): void {
     this.selectedModality.set(modality);
     this.currentPage.set(1);
     this.loadProcesses();

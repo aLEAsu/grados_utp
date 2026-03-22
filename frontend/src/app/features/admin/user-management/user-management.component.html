@@ -80,7 +80,19 @@
               </td>
               <td class="email-cell">{{ user.email }}</td>
               <td>
-                <span class="role-badge" [class]="getRoleClass(user.role)">{{ getRoleLabel(user.role) }}</span>
+                <select
+                  class="role-select"
+                  [ngModel]="user.role"
+                  (ngModelChange)="changeRole(user, $event)"
+                  [disabled]="roleChangingId === user.id"
+                  [title]="'Cambiar rol de ' + user.firstName">
+                  @for (role of roles; track role) {
+                    <option [ngValue]="role">{{ getRoleLabel(role) }}</option>
+                  }
+                </select>
+                @if (roleChangingId === user.id) {
+                  <span class="role-saving"><i class="pi pi-spin pi-spinner"></i></span>
+                }
               </td>
               <td>
                 <div class="status-toggle" (click)="toggleUserActive(user)">

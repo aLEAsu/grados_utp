@@ -13,7 +13,7 @@ import {
   BusinessRuleViolationError,
   InvalidStateTransitionError,
   InsufficientPermissionsError,
-} from '../../../modules/degree-process/domain/errors';
+} from '../../modules/degree-process/domain/errors';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
