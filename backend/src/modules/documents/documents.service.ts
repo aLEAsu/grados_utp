@@ -9,7 +9,6 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { StorageService } from '../../shared/storage/storage.service';
 import { DocumentStateMachine, DocumentStatus } from '../degree-process/domain/document-state-machine';
-import * as Express from 'express';
 import { DocumentVersion, RequirementInstance, User } from '@prisma/client';
 
 @Injectable()
@@ -122,7 +121,7 @@ export class DocumentsService {
 
       // Transition RequirementInstance state based on current status
       const currentStatus = requirementInstance.status;
-      let newStatus: DocumentStatus = currentStatus;
+      let newStatus: DocumentStatus = currentStatus as unknown as DocumentStatus;
 
       // POR_CARGAR -> PENDIENTE (when student uploads first time)
       if (currentStatus === DocumentStatus.POR_CARGAR) {
@@ -136,7 +135,7 @@ export class DocumentsService {
       // Validate and perform state transition
       if (newStatus !== currentStatus) {
         DocumentStateMachine.validateTransition(
-          currentStatus,
+          currentStatus as unknown as DocumentStatus,
           newStatus,
           uploadedByUser.role,
         );

@@ -1,6 +1,7 @@
-import { Component, computed, signal, OnInit } from '@angular/core';
+import { Component, computed, signal, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UserRole } from '../../../core/models/user.model';
@@ -20,7 +21,7 @@ interface MenuItem {
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })
-export class LayoutComponent implements OnInit {
+export class LayoutComponent implements OnInit, OnDestroy {
   sidebarCollapsed = signal(false);
   mobileMenuOpen = signal(false);
   userMenuOpen = signal(false);
@@ -100,6 +101,8 @@ export class LayoutComponent implements OnInit {
     });
   });
 
+  private pollingSub?: Subscription;
+
   constructor(
     public authService: AuthService,
     private notificationService: NotificationService,
@@ -107,8 +110,12 @@ export class LayoutComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.notificationService.loadNotifications().subscribe();
-    this.notificationService.startPolling(60000);
+    this.notificationService.loadNotifications().subscribe({ error: () => {} });
+    this.pollingSub = this.notificationService.startPolling(60000);
+  }
+
+  ngOnDestroy(): void {
+    this.pollingSub?.unsubscribe();
   }
 
   toggleSidebar(): void {
@@ -119,21 +126,24 @@ export class LayoutComponent implements OnInit {
     this.mobileMenuOpen.update(v => !v);
   }
 
-  toggleUserMenu(): void {
+  toggleUserMenu(event: MouseEvent): void {
+    event.stopPropagation();
     this.userMenuOpen.update(v => !v);
     if (this.userMenuOpen()) {
       this.notificationPanelOpen.set(false);
     }
   }
 
-  toggleNotifications(): void {
+  toggleNotifications(event: MouseEvent): void {
+    event.stopPropagation();
     this.notificationPanelOpen.update(v => !v);
     if (this.notificationPanelOpen()) {
       this.userMenuOpen.set(false);
     }
   }
 
-  closeDropdowns(): void {
+  @HostListener('document:click')
+  onDocumentClick(): void {
     this.userMenuOpen.set(false);
     this.notificationPanelOpen.set(false);
   }

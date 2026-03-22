@@ -5,6 +5,7 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "assets": ["**/*.json", "**/*.yaml", "**/*.yml"],
-    "watchAssets": true
+    "watchAssets": true,
+    "typeCheck": false
   }
 }

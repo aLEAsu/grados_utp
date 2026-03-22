@@ -445,13 +445,13 @@
             } @else {
               <div class="advisor-list">
                 @for (advisor of availableAdvisors(); track advisor.id) {
-                  <label class="advisor-option" [class.selected]="selectedAdvisorId === advisor.id">
-                    <input type="radio" name="advisor" [value]="advisor.id" [(ngModel)]="selectedAdvisorId" />
+                  <label class="advisor-option" [class.selected]="selectedAdvisorId === (advisor.userId || advisor.user?.id || advisor.id)">
+                    <input type="radio" name="advisor" [value]="advisor.userId || advisor.user?.id || advisor.id" [(ngModel)]="selectedAdvisorId" />
                     <div class="advisor-info">
-                      <span class="advisor-name">{{ advisor.firstName }} {{ advisor.lastName }}</span>
-                      <span class="advisor-detail">{{ advisor.advisorProfile?.department }} - {{ advisor.advisorProfile?.specialization }}</span>
+                      <span class="advisor-name">{{ advisor.user?.firstName || advisor.firstName }} {{ advisor.user?.lastName || advisor.lastName }}</span>
+                      <span class="advisor-detail">{{ advisor.department || advisor.advisorProfile?.department }} - {{ advisor.specialization || advisor.advisorProfile?.specialization }}</span>
                       <span class="advisor-capacity">
-                        {{ advisor.advisorProfile?.currentActiveProcesses }}/{{ advisor.advisorProfile?.maxActiveProcesses }} procesos
+                        {{ advisor.currentActiveProcesses ?? advisor.advisorProfile?.currentActiveProcesses ?? 0 }}/{{ advisor.maxActiveProcesses ?? advisor.advisorProfile?.maxActiveProcesses ?? 10 }} procesos
                       </span>
                     </div>
                   </label>

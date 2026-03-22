@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Frontend (Angular :4200)",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npm", "start"],
+      "port": 4200,
+      "cwd": "C:\\Users\\EQUIPO\\Desktop\\GRADO_UTP\\dev\\plataforma-grados-utp\\frontend"
+    },
+    {
+      "name": "Backend (NestJS :3000)",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npm", "run", "start:dev"],
+      "port": 3000,
+      "cwd": "C:\\Users\\EQUIPO\\Desktop\\GRADO_UTP\\dev\\plataforma-grados-utp\\backend"
+    },
+    {
+      "name": "Prisma Studio (:5555)",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "npm", "run", "prisma:studio"],
+      "port": 5555,
+      "cwd": "C:\\Users\\EQUIPO\\Desktop\\GRADO_UTP\\dev\\plataforma-grados-utp\\backend"
+    }
+  ]
+}
