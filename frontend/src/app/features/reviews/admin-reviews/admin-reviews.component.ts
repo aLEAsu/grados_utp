@@ -20,6 +20,7 @@ export class AdminReviewsComponent implements OnInit {
   searchTerm = '';
   processingId: string | null = null;
   observationTexts: Record<string, string> = {};
+  validationErrors: Record<string, string> = {};
   expandedId: string | null = null;
 
   constructor(
@@ -117,9 +118,10 @@ export class AdminReviewsComponent implements OnInit {
     if (this.processingId) return;
     const comment = this.observationTexts[item.id];
     if (!comment?.trim()) {
-      alert('Debes agregar una observación para rechazar.');
+      this.validationErrors[item.id] = 'Debes agregar una observación para rechazar.';
       return;
     }
+    this.validationErrors[item.id] = '';
     const reqId = item.requirementInstanceId || item.id;
     this.processingId = reqId;
 

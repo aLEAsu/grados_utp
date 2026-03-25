@@ -18,6 +18,8 @@ export class RegisterComponent {
   phone = '';
   password = '';
   confirmPassword = '';
+  studentCode = '';
+  program = '';
   showPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal('');
@@ -32,7 +34,7 @@ export class RegisterComponent {
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    if (!this.firstName || !this.lastName || !this.email || !this.password) {
+    if (!this.firstName || !this.lastName || !this.email || !this.password || !this.studentCode || !this.program) {
       this.errorMessage.set('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -55,6 +57,8 @@ export class RegisterComponent {
       email: this.email,
       password: this.password,
       phone: this.phone || undefined,
+      studentCode: this.studentCode,
+      program: this.program,
     }).subscribe({
       next: () => {
         this.successMessage.set('Cuenta creada exitosamente. Ahora puedes iniciar sesión.');

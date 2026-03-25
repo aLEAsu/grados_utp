@@ -90,9 +90,10 @@ export class ProcessDetailComponent implements OnInit {
     const role = this.userRole();
     const user = this.currentUser();
     if (!proc || !user) return false;
+    const isOwner = proc.studentId === user.sub || proc.student?.id === user.sub;
     return proc.status === ProcessStatus.DRAFT
       && role === UserRole.STUDENT
-      && proc.studentId === user.sub
+      && isOwner
       && !!proc.advisorId;
   });
 
@@ -253,21 +254,25 @@ export class ProcessDetailComponent implements OnInit {
 
   // === HELPER METHODS ===
 
+  /**
+   * Solo el ESTUDIANTE dueño del proceso puede cargar documentos.
+   * Admin, Asesor y Secretario supervisan/aprueban, NO cargan documentos.
+   */
   canUploadDocuments(): boolean {
     const proc = this.process();
     const role = this.userRole();
     const user = this.currentUser();
     if (!proc || !user) return false;
 
+    // Solo el estudiante dueño puede cargar documentos
     if (role === UserRole.STUDENT) {
-      return proc.studentId === user.sub
-        && [ProcessStatus.ACTIVE, ProcessStatus.IN_REVIEW].includes(proc.status);
+      const isOwner = proc.studentId === user.sub
+        || proc.student?.id === user.sub;
+      return isOwner
+        && [ProcessStatus.DRAFT, ProcessStatus.ACTIVE, ProcessStatus.IN_REVIEW].includes(proc.status);
     }
-    if (role === UserRole.ADVISOR) {
-      return proc.advisorId === user.sub
-        && [ProcessStatus.ACTIVE, ProcessStatus.IN_REVIEW].includes(proc.status);
-    }
-    if (role === UserRole.ADMIN || role === UserRole.SUPERADMIN) return true;
+
+    // Admin/Asesor/Secretario NO cargan documentos, solo supervisan
     return false;
   }
 
@@ -315,8 +320,15 @@ export class ProcessDetailComponent implements OnInit {
 
   getApprovalsByType(type: ApprovalType): Approval[] {
     const proc = this.process();
-    if (!proc?.approvals) return [];
-    return proc.approvals.filter(a => a.type === type);
+    if (!proc?.requirementInstances) return [];
+    // Approvals are nested inside requirementInstances, not at process level
+    const allApprovals: Approval[] = [];
+    for (const ri of proc.requirementInstances) {
+      if (ri.approvals) {
+        allApprovals.push(...ri.approvals);
+      }
+    }
+    return allApprovals.filter(a => a.type === type);
   }
 
   formatDate(dateString: string): string {

@@ -129,8 +129,9 @@
             <input type="text" class="form-input" [(ngModel)]="modalityForm.name" placeholder="Ej: Tesis de Grado" />
           </div>
           <div class="form-group">
-            <label class="form-label">Código *</label>
-            <input type="text" class="form-input" [(ngModel)]="modalityForm.code" placeholder="Ej: THESIS" [disabled]="!!editingModality()" />
+            <label class="form-label">Código único *</label>
+            <input type="text" class="form-input" [(ngModel)]="modalityForm.code" [disabled]="!!editingModality()" placeholder="Ej: TESIS, PAS-001, DIPLOMADO_2026" />
+            <small class="form-hint">Se convertirá a mayúsculas automáticamente. Debe ser único.</small>
           </div>
           <div class="form-group">
             <label class="form-label">Descripción</label>

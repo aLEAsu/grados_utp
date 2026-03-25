@@ -171,7 +171,7 @@ export class SignaturesService {
 
       // Sign the hash
       const md2 = forge.md.sha256.create();
-      md2.update(documentHash, 'hex');
+      md2.update(documentHash, 'hex' as any);
       const signature = privateKey.sign(md2);
       const signatureBase64 = Buffer.from(signature, 'binary').toString('base64');
 
@@ -187,7 +187,7 @@ export class SignaturesService {
           const cert = forge.pki.certificateFromPem(certPem);
           certificateSerial = cert.serialNumber;
         } catch (error) {
-          this.logger.warn(`Could not read certificate serial: ${error.message}`);
+          this.logger.warn(`Could not read certificate serial: ${(error as any).message}`);
         }
       }
 
@@ -228,10 +228,10 @@ export class SignaturesService {
         throw error;
       }
       this.logger.error(
-        `Failed to sign document: ${error.message}`,
-        error.stack,
+        `Failed to sign document: ${(error as any).message}`,
+        (error as any).stack,
       );
-      throw new BadRequestException(`Failed to sign document: ${error.message}`);
+      throw new BadRequestException(`Failed to sign document: ${(error as any).message}`);
     }
   }
 
@@ -282,16 +282,16 @@ export class SignaturesService {
 
       // Verify the signature
       const md2 = forge.md.sha256.create();
-      md2.update(recomputedHash, 'hex');
+      md2.update(recomputedHash, 'hex' as any);
       const signatureBytes = Buffer.from(signature.signatureHash, 'base64').toString('binary');
-      const isValid = publicKey.verify(md2.digest().bytes(), signatureBytes);
+      const isValid = (publicKey as any).verify(md2.digest().bytes(), signatureBytes);
 
       const result: SignatureVerification = {
         isValid,
         details: {
           signedBy: `${signature.signedBy.firstName} ${signature.signedBy.lastName}`,
           timestamp: signature.timestamp.toISOString(),
-          documentHash: signature.metadata?.documentHash || recomputedHash,
+          documentHash: (signature.metadata as any)?.documentHash || recomputedHash,
         },
       };
 
@@ -302,11 +302,11 @@ export class SignaturesService {
       return result;
     } catch (error) {
       this.logger.error(
-        `Failed to verify signature: ${error.message}`,
-        error.stack,
+        `Failed to verify signature: ${(error as any).message}`,
+        (error as any).stack,
       );
       throw new BadRequestException(
-        `Failed to verify signature: ${error.message}`,
+        `Failed to verify signature: ${(error as any).message}`,
       );
     }
   }
@@ -479,11 +479,11 @@ export class SignaturesService {
       return result;
     } catch (error) {
       this.logger.error(
-        `Failed to generate key pair: ${error.message}`,
-        error.stack,
+        `Failed to generate key pair: ${(error as any).message}`,
+        (error as any).stack,
       );
       throw new BadRequestException(
-        `Failed to generate key pair: ${error.message}`,
+        `Failed to generate key pair: ${(error as any).message}`,
       );
     }
   }
@@ -529,11 +529,11 @@ export class SignaturesService {
         throw error;
       }
       this.logger.error(
-        `Failed to get certificate info: ${error.message}`,
-        error.stack,
+        `Failed to get certificate info: ${(error as any).message}`,
+        (error as any).stack,
       );
       throw new BadRequestException(
-        `Failed to get certificate info: ${error.message}`,
+        `Failed to get certificate info: ${(error as any).message}`,
       );
     }
   }

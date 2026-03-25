@@ -3,15 +3,23 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { DegreeProcessService } from '../../../core/services/degree-process.service';
-import { DegreeModality, DegreeModalityCode } from '../../../core/models/degree-process.model';
+import { DegreeModality } from '../../../core/models/degree-process.model';
 
 interface ModalityCard {
-  code: DegreeModalityCode;
+  code: string;
   name: string;
   description: string;
   icon: string;
   requirements: string[];
 }
+
+// Default icons and descriptions for known modality codes
+const MODALITY_DEFAULTS: Record<string, { icon: string; description: string }> = {
+  THESIS: { icon: '📚', description: 'Proyecto de investigación original con defensa' },
+  INTERNSHIP: { icon: '💼', description: 'Experiencia laboral supervisada' },
+  RESEARCH_LINE: { icon: '🔬', description: 'Participación en proyecto de investigación' },
+  DIPLOMA: { icon: '🎓', description: 'Programa de especialización' },
+};
 
 @Component({
   selector: 'app-process-new',
@@ -26,69 +34,36 @@ export class ProcessNewComponent implements OnInit {
   error = signal<string | null>(null);
   success = signal(false);
 
-  selectedModality = signal<DegreeModalityCode | null>(null);
+  selectedModality = signal<string | null>(null);
   modalities = signal<DegreeModality[]>([]);
 
   form!: FormGroup;
 
-  modalityCards: ModalityCard[] = [
-    {
-      code: DegreeModalityCode.THESIS,
-      name: 'Tesis',
-      description: 'Proyecto de investigación original con defensa',
-      icon: '📚',
-      requirements: [
-        'Propuesta de tesis aprobada',
-        'Documento completo de tesis',
-        'Acta de defensa',
-        'Certificado de correcciones'
-      ]
-    },
-    {
-      code: DegreeModalityCode.INTERNSHIP,
-      name: 'Pasantía',
-      description: 'Experiencia laboral supervisada',
-      icon: '💼',
-      requirements: [
-        'Solicitud de pasantía',
-        'Plan de pasantía',
-        'Informe final',
-        'Evaluación del supervisor'
-      ]
-    },
-    {
-      code: DegreeModalityCode.RESEARCH_LINE,
-      name: 'Línea de Investigación',
-      description: 'Participación en proyecto de investigación',
-      icon: '🔬',
-      requirements: [
-        'Propuesta de investigación',
-        'Artículo científico',
-        'Reporte técnico',
-        'Certificado de participación'
-      ]
-    },
-    {
-      code: DegreeModalityCode.DIPLOMA,
-      name: 'Diplomado',
-      description: 'Programa de especialización',
-      icon: '🎓',
-      requirements: [
-        'Registro de inscripción',
-        'Certificado de aprobación',
-        'Proyecto final',
-        'Constancia de participación'
-      ]
-    }
-  ];
+  // Built dynamically from backend modalities
+  modalityCards = computed<ModalityCard[]>(() => {
+    return this.modalities().map(m => {
+      const defaults = MODALITY_DEFAULTS[m.code] || { icon: '📄', description: m.description };
+      const requirements = m.requirements?.map(r => r.documentType?.name || 'Documento') || [];
+      return {
+        code: m.code,
+        name: m.name,
+        description: defaults.description || m.description,
+        icon: defaults.icon,
+        requirements,
+      };
+    });
+  });
 
   selectedModalityData = computed(() => {
     const code = this.selectedModality();
-    return code ? this.modalityCards.find(m => m.code === code) : null;
+    return code ? this.modalityCards().find(m => m.code === code) : null;
   });
 
   canProceedToStep2 = computed(() => !!this.selectedModality());
-  canProceedToStep3 = computed(() => this.form?.valid && this.selectedModality());
+
+  get canProceedToStep3(): boolean {
+    return !!(this.form?.valid && this.selectedModality());
+  }
 
   constructor(
     private processService: DegreeProcessService,
@@ -124,13 +99,13 @@ export class ProcessNewComponent implements OnInit {
     });
   }
 
-  selectModality(code: DegreeModalityCode): void {
+  selectModality(code: string): void {
     this.selectedModality.set(code);
   }
 
   goToStep(step: number): void {
     if (step === 2 && !this.canProceedToStep2()) return;
-    if (step === 3 && !this.canProceedToStep3()) return;
+    if (step === 3 && !this.canProceedToStep3) return;
     this.currentStep.set(step);
     this.error.set(null);
   }
@@ -148,11 +123,20 @@ export class ProcessNewComponent implements OnInit {
       return;
     }
 
+    // Obtener el UUID real de la modalidad seleccionada (el backend exige @IsUUID)
+    const selectedCode = this.selectedModality();
+    const matchedModality = this.modalities().find(m => m.code === selectedCode);
+
+    if (!matchedModality) {
+      this.error.set('Modalidad no encontrada. Por favor selecciona una modalidad válida.');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
 
     const payload = {
-      modalityId: this.selectedModality(),
+      modalityId: matchedModality.id,      // UUID requerido por el backend
       title: this.form.get('title')?.value,
       description: this.form.get('description')?.value
     };
@@ -167,7 +151,7 @@ export class ProcessNewComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error creating process:', err);
-        this.error.set(err?.error?.message || 'Error al crear el proceso. Intente de nuevo.');
+        this.error.set(err?.error?.error || err?.error?.message || 'Error al crear el proceso. Intente de nuevo.');
         this.loading.set(false);
       }
     });

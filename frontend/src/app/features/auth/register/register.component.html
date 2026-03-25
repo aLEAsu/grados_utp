@@ -26,8 +26,11 @@
   <div class="auth-form-section">
     <div class="auth-form-container">
       <div class="form-header">
-        <h2>Crear Cuenta</h2>
-        <p>Completa el formulario para registrarte en la plataforma</p>
+        <h2>Registro de Estudiante</h2>
+        <p>Completa el formulario para registrarte como estudiante en la plataforma</p>
+        <p class="form-hint" style="margin-top: 4px; font-size: 0.8rem; color: #888;">
+          Para roles administrativos (Asesor, Secretaria, Admin), contacte al administrador del sistema.
+        </p>
       </div>
 
       <button class="google-btn" (click)="loginWithGoogle()" [disabled]="isLoading()">
@@ -88,6 +91,23 @@
           <div class="input-wrapper">
             <i class="pi pi-phone input-icon"></i>
             <input id="phone" type="tel" [(ngModel)]="phone" name="phone" placeholder="Número de contacto" [disabled]="isLoading()" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="studentCode">Código Estudiantil *</label>
+            <div class="input-wrapper">
+              <i class="pi pi-id-card input-icon"></i>
+              <input id="studentCode" type="text" [(ngModel)]="studentCode" name="studentCode" placeholder="Ej: 2020150001" [disabled]="isLoading()" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="program">Programa Académico *</label>
+            <div class="input-wrapper">
+              <i class="pi pi-book input-icon"></i>
+              <input id="program" type="text" [(ngModel)]="program" name="program" placeholder="Ej: Ingeniería de Sistemas" [disabled]="isLoading()" />
+            </div>
           </div>
         </div>
 

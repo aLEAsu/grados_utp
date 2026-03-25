@@ -20,6 +20,7 @@ export class PendingReviewsComponent implements OnInit {
   searchTerm = '';
   processingId: string | null = null;
   observationTexts: Record<string, string> = {};
+  validationErrors: Record<string, string> = {};
   expandedId: string | null = null;
 
   constructor(
@@ -100,9 +101,10 @@ export class PendingReviewsComponent implements OnInit {
     if (this.processingId) return;
     const comment = this.observationTexts[item.id];
     if (!comment?.trim()) {
-      alert('Debes agregar una observación antes de solicitar corrección.');
+      this.validationErrors[item.id] = 'Debes agregar una observación antes de solicitar corrección.';
       return;
     }
+    this.validationErrors[item.id] = '';
     const reqId = item.requirementInstanceId || item.id;
     this.processingId = reqId;
 
@@ -126,9 +128,10 @@ export class PendingReviewsComponent implements OnInit {
     if (this.processingId) return;
     const comment = this.observationTexts[item.id];
     if (!comment?.trim()) {
-      alert('Debes agregar una observación para rechazar el documento.');
+      this.validationErrors[item.id] = 'Debes agregar una observación para rechazar el documento.';
       return;
     }
+    this.validationErrors[item.id] = '';
     const reqId = item.requirementInstanceId || item.id;
     this.processingId = reqId;
 
