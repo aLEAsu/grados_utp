@@ -5,7 +5,7 @@ export class CreateModalityDto {
   name: string;
 
   @IsString()
-  code: string;
+  code: string; // Será normalizado y validado usando la función normalizeAndValidateModalityCode
 
   @IsString()
   description: string;

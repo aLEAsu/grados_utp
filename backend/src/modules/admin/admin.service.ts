@@ -6,16 +6,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { UserRole } from '../../shared/decorators/roles.decorator';
-import {
-  CreateModalityDto,
-  UpdateModalityDto,
-  AddRequirementDto,
-} from './dto/modality.dto';
-import {
-  CreateDocumentTypeDto,
-  UpdateDocumentTypeDto,
-} from './dto/document-type.dto';
+import { CreateModalityDto, UpdateModalityDto, AddRequirementDto } from './dto/modality.dto';
+import { CreateDocumentTypeDto, UpdateDocumentTypeDto } from './dto/document-type.dto';
 import { UserFilterDto } from './dto/user-filter.dto';
+import { normalizeAndValidateModalityCode } from './utils/modality-code.util';
 
 @Injectable()
 export class AdminService {
@@ -25,27 +19,23 @@ export class AdminService {
    * Get dashboard statistics
    */
   async getDashboardStats() {
-    const [
-      totalStudents,
-      processesByStatus,
-      processesByModality,
-      documentsPendingReview,
-    ] = await Promise.all([
-      this.prisma.user.count({
-        where: { role: UserRole.STUDENT },
-      }),
-      this.prisma.degreeProcess.groupBy({
-        by: ['status'],
-        _count: true,
-      }),
-      this.prisma.degreeProcess.groupBy({
-        by: ['modalityId'],
-        _count: true,
-      }),
-      this.prisma.requirementInstance.count({
-        where: { status: 'EN_REVISION' },
-      }),
-    ]);
+    const [totalStudents, processesByStatus, processesByModality, documentsPendingReview] =
+      await Promise.all([
+        this.prisma.user.count({
+          where: { role: UserRole.STUDENT },
+        }),
+        this.prisma.degreeProcess.groupBy({
+          by: ['status'],
+          _count: true,
+        }),
+        this.prisma.degreeProcess.groupBy({
+          by: ['modalityId'],
+          _count: true,
+        }),
+        this.prisma.requirementInstance.count({
+          where: { status: 'EN_REVISION' },
+        }),
+      ]);
 
     // Get recent activity (last 10 audit events)
     const recentActivity = await this.prisma.auditEvent.findMany({
@@ -99,21 +89,22 @@ export class AdminService {
    */
   async createModality(dto: CreateModalityDto) {
     // Normalize code: uppercase, replace spaces with underscores
-    const normalizedCode = dto.code.trim().toUpperCase().replace(/\s+/g, '_');
+    const normalizedCode = normalizeAndValidateModalityCode(dto.code);
 
+    // verificar que no exista otra modalidad con el mismo código
     const existingModality = await this.prisma.degreeModality.findFirst({
       where: {
-        OR: [
-          { name: { equals: dto.name, mode: 'insensitive' } },
-          { code: normalizedCode },
-        ],
+        OR: [{ name: { equals: dto.name, mode: 'insensitive' } }, 
+          { code: normalizedCode }],
       },
     });
 
+    // Si ya existe una modalidad con el mismo nombre o código, lanzar error
     if (existingModality) {
-      throw new BadRequestException('Ya existe una modalidad con este nombre o código');
+      throw new BadRequestException('Ya existe una modalidad con el mismo nombre o código');
     }
 
+    // Si todo es válido, crear la modalidad
     return this.prisma.degreeModality.create({
       data: {
         name: dto.name,
@@ -162,16 +153,14 @@ export class AdminService {
       throw new NotFoundException('Document type not found');
     }
 
-    const existingRequirement = await this.prisma.modalityRequirement.findUnique(
-      {
-        where: {
-          modalityId_documentTypeId: {
-            modalityId,
-            documentTypeId: dto.documentTypeId,
-          },
+    const existingRequirement = await this.prisma.modalityRequirement.findUnique({
+      where: {
+        modalityId_documentTypeId: {
+          modalityId,
+          documentTypeId: dto.documentTypeId,
         },
       },
-    );
+    });
 
     if (existingRequirement) {
       throw new BadRequestException(
@@ -197,10 +186,7 @@ export class AdminService {
   /**
    * Remove requirement from modality
    */
-  async removeRequirementFromModality(
-    modalityId: string,
-    requirementId: string,
-  ) {
+  async removeRequirementFromModality(modalityId: string, requirementId: string) {
     const requirement = await this.prisma.modalityRequirement.findUnique({
       where: { id: requirementId },
     });

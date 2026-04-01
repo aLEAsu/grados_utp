@@ -16,6 +16,7 @@ import { AdminModule } from './modules/admin/admin.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development',
       isGlobal: true,
       load: [appConfig],
     }),

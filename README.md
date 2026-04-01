@@ -106,11 +106,31 @@ npm run prisma:seed
 psql -U itp_admin -d plataforma_grados
 
 # En el backend
-npm run prisma:migrate:dev
+# Usarlos dependiendo de si va a correr de forma local o entorno real
+npm run prisma:migrate:dev // npm run prisma:migrate:prod
 npm run prisma:seed
 ```
 
 ## Desarrollo
+
+## Inicializar todo el entorno de desarollo (Produccion-Local)
+npm run setup:dev
+
+- Esto hará:
+- prisma generate → genera el cliente Prisma.
+- prisma migrate dev --env-file .env.development → aplica migraciones en tu DB de desarrollo.
+- ts-node prisma/seed.ts → ejecuta el script de seed para poblar datos iniciales.
+
+
+## Inicializar en Desarrollo (Entorno Real)
+npm run setup:prod
+
+- Genera cliente Prisma, aplica migraciones en .env.production y corre el seed.
+
+## Ventajas de ambos (Dev-prod):
+- Flujo unificado para dev y prod.
+- Prisma siempre recibe el .env correcto.
+- Tu equipo puede inicializar cualquier entorno con un solo comando.
 
 ### Ejecutar Backend en Desarrollo
 
