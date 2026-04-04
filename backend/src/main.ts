@@ -78,7 +78,8 @@ async function bootstrap(): Promise<void> {
 
   const port = appConfig.port || 3000;
   await app.listen(port, '0.0.0.0');
-
+  
+  Logger.log(`Backend corriendo en el puerto ${port}`);
   logger.log(`Application is running on port ${port}`);
   logger.log(`Environment: ${appConfig.environment}`);
   logger.log(`Swagger documentation available at http://localhost:${port}/api/docs`);

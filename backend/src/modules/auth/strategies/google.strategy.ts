@@ -11,6 +11,19 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     configService: ConfigService,
     private authService: AuthService,
   ) {
+
+    /* Verificar que las variables si llegan */
+    const clientId = configService.get('app.googleClientId');
+    const clientSecret = configService.get('app.googleClientSecret');
+    const callbackUrl = configService.get('app.googleCallbackUrl');
+
+    console.log('Google OAuth Config:',{
+      clientId,
+      clientSecret,
+      callbackUrl,
+    }
+    );
+
     super({
       clientID: configService.get('app.googleClientId'),
       clientSecret: configService.get('app.googleClientSecret'),
