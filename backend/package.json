@@ -25,6 +25,9 @@
     "setup:dev": "npm run prisma:generate && npm run prisma:migrate:dev && npm run prisma:seed",
     "setup:prod": "npm run prisma:generate && npm run prisma:migrate:prod && npm run prisma:seed"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@nestjs/common": "^11.1.17",
     "@nestjs/config": "^4.0.3",

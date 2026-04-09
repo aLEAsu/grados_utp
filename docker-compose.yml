@@ -30,7 +30,7 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://itp_admin:${DB_PASSWORD:-itp_dev_2024}@postgres:5432/plataforma_grados
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4200}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8069}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-dummy_client}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-dummy_secret}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:3000/auth/google/callback}
@@ -40,6 +40,11 @@ services:
     volumes:
       - uploads_data:/app/uploads
       - signatures_data:/app/signatures
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
     build:
@@ -52,7 +57,7 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/index.html"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/index.html"]
       interval: 30s
       timeout: 5s
       retries: 3

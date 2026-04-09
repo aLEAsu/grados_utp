@@ -12,6 +12,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { IntegrationModule } from './modules/integration/integration.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -34,7 +35,7 @@ import { AdminModule } from './modules/admin/admin.module';
     AuditModule,
     AdminModule,
   ],
-  controllers: [],
+  controllers: [HealthController],  //Controlador de salud para monitoreo del sistema
   providers: [],
 })
 export class AppModule {}
