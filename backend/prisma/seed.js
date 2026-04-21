@@ -1,5 +1,5 @@
-import { PrismaClient, UserRole, AcademicStatus } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+const { PrismaClient, UserRole, AcademicStatus } = require ('@prisma/client');
+const bcrypt = require ('bcrypt');
 
 const prisma = new PrismaClient();
 
@@ -170,7 +170,7 @@ async function main() {
   const docMap = documentTypes.reduce((acc, doc) => {
     acc[doc.code] = doc.id;
     return acc;
-  }, {} as Record<string, string>);
+  }, {});
 
   // Seed Modality Requirements
   console.log('Seeding modality requirements...');
