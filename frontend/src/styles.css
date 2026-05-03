@@ -2,30 +2,31 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-/* CSS Variables for Theme */
+/* ================================
+   Variables de identidad ITP
+================================ */
 :root {
-  --color-primary: #1e40af;
-  --color-primary-light: #3b82f6;
-  --color-primary-dark: #1d4ed8;
-  --color-secondary: #059669;
-  --color-secondary-light: #10b981;
-  --color-secondary-dark: #047857;
-  --color-accent: #d97706;
-  --color-accent-light: #f59e0b;
-  --color-accent-dark: #b45309;
+  /* Colores institucionales */
+  --color-azul: #09618f; /* Azul corporativo */
+  --color-verde-oscuro: #3f5e26;
+  --color-verde: #7cb532;
+  --color-verde-claro: #accf80;
+  --color-amarillo: #f7bf00;
+  --color-rojo: #e52922;
+  --color-gris: #585857;
 
   /* Status Colors */
   --color-status-por-cargar: #9ca3af;
-  --color-status-pendiente: #fbbf24;
-  --color-status-en-revision: #3b82f6;
+  --color-status-pendiente: var(--color-amarillo);
+  --color-status-en-revision: var(--color-azul);
   --color-status-en-correccion: #f97316;
-  --color-status-aprobado: #22c55e;
-  --color-status-finalizado: #10b981;
+  --color-status-aprobado: var(--color-verde);
+  --color-status-finalizado: var(--color-verde-oscuro);
 
   /* Neutral Colors */
   --color-bg: #ffffff;
   --color-bg-secondary: #f9fafb;
-  --color-text: #1f2937;
+  --color-text: var(--color-gris);
   --color-text-secondary: #6b7280;
   --color-border: #e5e7eb;
   --color-border-light: #f3f4f6;
@@ -42,11 +43,20 @@
 }
 
 /* Global Styles */
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    'Roboto',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Arial,
+    sans-serif;
   color: var(--color-text);
   background-color: var(--color-bg-secondary);
   line-height: 1.5;
@@ -77,33 +87,33 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--color-text);
+  font-weight: 700;
+  color: var(--color-azul);
+  font-family: 'Roboto', sans-serif;
 }
 
 h1 {
   font-size: 2.25rem;
 }
-
 h2 {
   font-size: 1.875rem;
 }
-
 h3 {
   font-size: 1.5rem;
 }
-
 h4 {
   font-size: 1.25rem;
 }
-
 h5 {
   font-size: 1.125rem;
 }
-
 h6 {
   font-size: 1rem;
 }
@@ -111,68 +121,80 @@ h6 {
 p {
   margin: 0;
   color: var(--color-text);
+  font-family: 'Roboto', sans-serif;
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--color-azul);
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.2s ease-in-out;
+  transition: color 0.3s ease-in-out;
 }
-
 a:hover {
-  color: var(--color-primary-dark);
+  color: var(--color-verde);
 }
 
 /* PrimeNG Customizations */
 .p-component {
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    'Roboto',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Arial,
+    sans-serif;
 }
 
 .p-button {
   border-radius: var(--radius-md);
-  font-weight: 500;
-  transition: all 0.2s ease-in-out;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
 }
 
 .p-button-primary {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-azul), var(--color-verde));
+  border: none;
+  color: white;
 }
-
 .p-button-primary:hover {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+  background: linear-gradient(135deg, var(--color-verde), var(--color-azul));
+  box-shadow:
+    0 0 12px var(--color-azul),
+    0 0 24px var(--color-verde);
+  transform: translateY(-2px);
 }
 
 .p-button-secondary {
-  background-color: var(--color-secondary);
-  border-color: var(--color-secondary);
+  background-color: var(--color-verde);
+  border-color: var(--color-verde);
+  color: white;
 }
-
 .p-button-secondary:hover {
-  background-color: var(--color-secondary-dark);
-  border-color: var(--color-secondary-dark);
+  background-color: var(--color-verde-oscuro);
+  border-color: var(--color-verde-oscuro);
 }
 
 .p-button-text {
-  color: var(--color-primary);
+  color: var(--color-azul);
 }
-
 .p-button-text:hover {
-  background-color: rgba(30, 64, 175, 0.1);
+  background-color: rgba(9, 97, 143, 0.1);
 }
 
 .p-inputtext {
   border-radius: var(--radius-md);
   border-color: var(--color-border);
   padding: 0.625rem 0.875rem;
-  transition: border-color 0.2s ease-in-out;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
-
 .p-inputtext:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 0.2rem rgba(30, 64, 175, 0.1);
+  border-color: var(--color-azul);
+  box-shadow: 0 0 8px rgba(9, 97, 143, 0.4);
+  outline: none;
 }
 
 .p-card {
@@ -184,36 +206,32 @@ a:hover {
 .p-card-body {
   padding: 1.5rem;
 }
-
 .p-card-title {
-  color: var(--color-text);
-  font-weight: 600;
+  color: var(--color-azul);
+  font-weight: 700;
   margin-bottom: 1rem;
 }
 
+/* Menus */
 .p-menu {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
 }
-
-.p-menu-item {
-  border-radius: 0;
-}
-
 .p-menu-item > a {
   color: var(--color-text);
   padding: 0.75rem 1rem;
+  transition: background 0.3s ease;
 }
-
 .p-menu-item:hover > a {
-  background-color: var(--color-bg-secondary);
+  background-color: var(--color-verde-claro);
+  color: white;
 }
-
 .p-menu-item.p-highlight > a {
-  background-color: rgba(30, 64, 175, 0.1);
-  color: var(--color-primary);
+  background-color: rgba(9, 97, 143, 0.1);
+  color: var(--color-azul);
 }
 
+/* Paginador y tablas */
 .p-paginator {
   background-color: var(--color-bg);
   border: 1px solid var(--color-border);
@@ -224,18 +242,17 @@ a:hover {
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
-
 .p-datatable .p-datatable-header {
   background-color: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border);
   padding: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--color-azul);
 }
 
 .p-datatable .p-datatable-tbody > tr:hover {
-  background-color: var(--color-bg-secondary);
+  background-color: rgba(124, 181, 50, 0.1);
 }
-
 .p-datatable .p-datatable-tbody > tr > td {
   border-color: var(--color-border);
   padding: 1rem;
@@ -249,37 +266,32 @@ a:hover {
   padding: 0.375rem 0.875rem;
   border-radius: 9999px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .status-badge.por-cargar {
   background-color: rgba(156, 163, 175, 0.1);
-  color: #374151;
+  color: var(--color-gris);
 }
-
 .status-badge.pendiente {
-  background-color: rgba(251, 191, 36, 0.1);
-  color: #b45309;
+  background-color: rgba(247, 191, 0, 0.1);
+  color: var(--color-amarillo);
 }
-
 .status-badge.en-revision {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #1d4ed8;
+  background-color: rgba(9, 97, 143, 0.1);
+  color: var(--color-azul);
 }
-
 .status-badge.en-correccion {
   background-color: rgba(249, 115, 22, 0.1);
   color: #b45309;
 }
-
 .status-badge.aprobado {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #166534;
+  background-color: rgba(124, 181, 50, 0.1);
+  color: var(--color-verde);
 }
-
 .status-badge.finalizado {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: #047857;
+  background-color: rgba(46, 116, 49, 0.1);
+  color: var(--color-verde-oscuro);
 }
 
 /* Loading Spinner */
@@ -288,14 +300,42 @@ a:hover {
   width: 1rem;
   height: 1rem;
   border: 2px solid var(--color-border);
-  border-top-color: var(--color-primary);
+  border-top-color: var(--color-azul);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
 
+/* ESTILOS GLOBALES */
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.015);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.95;
   }
 }
 
@@ -327,7 +367,7 @@ a:hover {
 
 /* Transitions */
 .transition-all {
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
 /* Focus Outline */
@@ -337,7 +377,7 @@ a:hover {
 }
 
 .focus-ring:focus {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-azul);
   outline-offset: 2px;
 }
 
@@ -352,18 +392,34 @@ a:hover {
     --color-border-light: #4b5563;
   }
 
+  body {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text);
+  }
+
   .p-inputtext {
     background-color: #374151;
     border-color: #4b5563;
-    color: #f3f4f6;
+    color: var(--color-text);
   }
 
   .p-inputtext:focus {
-    border-color: var(--color-primary);
+    border-color: var(--color-azul);
   }
 
   .p-card {
-    background-color: #1f2937;
-    border-color: #374151;
+    background-color: var(--color-bg);
+    border-color: var(--color-border);
   }
+
+  .p-button-primary {
+    background: linear-gradient(135deg, var(--color-azul), var(--color-verde));
+  }
+}
+
+/* Responsive refinado */
+@media (max-width: 430px) {
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  .p-card-body { padding: 1rem; }
 }
