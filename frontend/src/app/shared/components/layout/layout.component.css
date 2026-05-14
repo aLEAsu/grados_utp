@@ -2,14 +2,14 @@
 .layout-wrapper {
   display: flex;
   min-height: 100vh;
-  background-color: var(--color-bg);
+  background-color: var(--color-azul);
   font-family: 'Roboto', sans-serif;
 }
 
 /* Sidebar */
 .sidebar {
   width: 272px;
-  background: linear-gradient(180deg, var(--color-azul) 0%, var(--color-verde) 100%);
+  background: linear-gradient(180deg, var(--color-azul) 0%, var(--color-verde) 150%);
   color: var(--color-text-secondary);
   display: flex;
   flex-direction: column;
@@ -20,6 +20,8 @@
   z-index: 50;
   transition: width 0.3s ease;
   overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 1.5px;
 }
 
 .sidebar.collapsed {
@@ -27,7 +29,7 @@
 }
 
 .sidebar-header {
-  padding: 1.25rem 1rem;
+  padding: 0.60rem 1rem;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -41,14 +43,19 @@
   width: 40px;
   height: 40px;
   min-width: 40px;
-  background: linear-gradient(135deg, var(--color-azul), var(--color-verde));
+  background: linear-gradient(90deg, var(--color-azul), var(--color-verde));
   border-radius: 10px;
+  border: 1px solid var(--color-verde);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
   color: white;
   box-shadow: 0 2px 8px rgba(9, 97, 143, 0.3);
+}
+.logo-icon i {
+  font-size: 1.32rem; /* ligeramente más grande */
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.25); /* mejora la legibilidad */
 }
 
 .logo-text {
@@ -72,7 +79,7 @@
 /* Navigation */
 .sidebar-nav {
   flex: 1;
-  padding: 0.75rem 0.5rem;
+  padding: 0.85rem 0.8rem;
   overflow-y: auto;
 }
 
@@ -80,10 +87,10 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
+  padding: 0.75rem 1rem;
   margin: 2px 0;
   border-radius: 8px;
-  color: var(--color-text-secondary);
+  color: white;
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 500;
@@ -91,8 +98,8 @@
   cursor: pointer;
 }
 .nav-item:hover {
-  background-color: rgba(9, 97, 143, 0.05);
-  color: var(--color-text);
+  background-color: rgba(3, 47, 71, 0.186);
+  color: var(--color-text-secondary);
 }
 
 .nav-item i {
@@ -102,9 +109,13 @@
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, rgba(9, 97, 143, 0.2), rgba(124, 181, 50, 0.1));
-  color: var(--color-azul);
-  box-shadow: inset 3px 0 0 0 var(--color-azul);
+  background: linear-gradient(135deg, var(--color-azul) 20%, #6aa84f 120%);
+  color: white;
+  font-weight: 600;
+  box-shadow: inset 4px 0 0 0 var(--color-azul);
+}
+.nav-item.active i {
+  color: white;
 }
 
 .nav-badge {
@@ -129,12 +140,6 @@
   padding: 0.75rem;
   border-top: 1px solid var(--color-border);
 }
-
-/* Sidebar footer */
-.sidebar-footer {
-  padding: 0.75rem;
-  border-top: 1px solid var(--color-border);
-}
 .collapse-btn {
   display: flex;
   align-items: center;
@@ -144,14 +149,14 @@
   background: none;
   border: none;
   color: var(--color-text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.3s ease;
 }
 .collapse-btn:hover {
-  background-color: rgba(9, 97, 143, 0.05);
-  color: var(--color-text);
+  background-color: rgba(3, 47, 71, 0.186);
+  color: white;
 }
 
 /* Main area */
@@ -169,18 +174,19 @@
 
 /* Header */
 .top-header {
-  height: 64px;
-  background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: 64px;
+  background: linear-gradient(170deg, var(--color-azul) 6%, var(--color-verde) 170%);
+  border-bottom: 1px solid var(--color-border);
   padding: 0 1.5rem;
   position: sticky;
   top: 0;
   z-index: 40;
   box-shadow: var(--shadow-sm);
 }
+
 
 .header-left {
   display: flex;
@@ -204,8 +210,8 @@
 }
 
 .breadcrumb-text {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
+  font-size: 1.2rem;
+  color: white;
   font-weight: 500;
 }
 
@@ -506,8 +512,24 @@
 
 /* Page content */
 .page-content {
-  flex: 1;
-  padding: 1.5rem;
+  background: var(--color-bg); /* usa el mismo fondo institucional */
+  border-radius: 12px; /* esquinas suaves */
+  padding: 2rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); /* sombra más ligera */
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.page-content h2,
+.page-content h3 {
+  font-weight: 700;
+  color: var(--color-azul);
+  margin-bottom: 1rem;
+}
+
+.page-content p {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
 }
 
 /* Mobile overlay */
