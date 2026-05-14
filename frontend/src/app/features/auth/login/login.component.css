@@ -8,7 +8,7 @@
   background: linear-gradient(
     135deg,
     var(--color-azul) 0%,
-    var(--color-verde) 50%,
+    #5faf6a 60%,
     var(--color-verde-claro) 100%
   );
   color: white;

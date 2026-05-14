@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build --webpack",
     "start": "node dist/main",
-    "start:dev": "nest start --webpack --watch",
+    "start:dev": "ts-node-dev --require tsconfig-paths/register --respawn --transpile-only src/main.ts",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -85,6 +85,8 @@
     "ts-jest": "^29.1.1",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3"
   },
   "jest": {

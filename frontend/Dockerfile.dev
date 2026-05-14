@@ -1,0 +1,22 @@
+# Development stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install required tools for development
+RUN apk add --no-cache curl
+
+# Copiar package.json y package-lock.json
+COPY package*.json ./
+
+# Instalar todas las dependencias (incluyendo devDependencies)
+RUN npm install
+
+# Copiar el resto del código
+COPY . .
+
+# Exponer el puerto del backend
+EXPOSE 4200
+
+# Comando por defecto: servidor NestJS en modo desarrollo con live reload
+CMD ["npm", "run", "start"]

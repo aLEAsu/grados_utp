@@ -5,7 +5,7 @@
     "lib": ["ES2022"],
     "declaration": true,
     "outDir": "./dist",
-    "baseUrl": "./src",
+    "baseUrl": "src",
     "rootDir": "./src",
     "incremental": true,
     "skipLibCheck": true,
@@ -14,21 +14,6 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "strict": false,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictFunctionTypes": false,
-    "strictBindCallApply": false,
-    "strictPropertyInitialization": false,
-    "noImplicitThis": false,
-    "alwaysStrict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false,
-    "allowUnusedLabels": true,
-    "allowUnreachableCode": true,
-    "useUnknownInCatchVariables": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {
@@ -41,6 +26,7 @@
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"],
   "ts-node": {
     "transpileOnly": true,
-    "files": true
+    "files": true,
+    "require": ["tsconfig-paths/register"]
   }
 }
