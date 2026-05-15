@@ -6,10 +6,10 @@
 }
 
 .dashboard {
-  background: linear-gradient(180deg, #0b1624 0%, #0d1b2a 100%);
-  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-azul) -20%, var(--color-verde) 190%);
   padding: 2rem;
-  box-shadow: 0 6px 18px rgba(9, 97, 143, 0.15);
+  box-shadow: 0 0 20px rgba(9, 96, 143, 0.9);
+  animation: glowPulse 3s ease-in-out infinite;
 }
 
 .dashboard-header {
@@ -135,7 +135,7 @@
 }
 .stat-card:hover {
   border-color: var(--color-azul);
-  box-shadow: 0 4px 16px rgba(30, 136, 229, 0.25);
+  box-shadow: 0 0 20px rgba(0, 136, 255, 0.989);
   transform: translateY(-2px);
 }
 
@@ -195,7 +195,7 @@
 .section-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--color-azul);
+  color: white;
   margin-bottom: 1rem;
 }
 .section-header .section-title {
@@ -588,7 +588,7 @@
   .process-title,
   .chart-title,
   .status-count {
-    color: var(--color-azul);
+    color: var(--color-text-secondary);
   }
 
   .process-desc,
@@ -623,7 +623,6 @@
     background: var(--color-azul-claro);
     color: white;
     box-shadow:
-      0 0 12px var(--color-azul),
-      0 0 24px var(--color-verde);
+      0 0 22px var(--color-azul)
   }
 }

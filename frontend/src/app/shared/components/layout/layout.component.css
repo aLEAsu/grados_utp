@@ -20,8 +20,7 @@
   z-index: 50;
   transition: width 0.3s ease;
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: 1.5px;
+  border-right: 1px solid var(--color-border);
 }
 
 .sidebar.collapsed {
@@ -30,7 +29,6 @@
 
 .sidebar-header {
   padding: 0.60rem 1rem;
-  border-bottom: 1px solid var(--color-border);
 }
 
 .logo-container {
@@ -109,10 +107,10 @@
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, var(--color-azul) 20%, #6aa84f 120%);
+  background: linear-gradient(135deg, var(--color-azul) 20%, var(--color-verde) 120%);
   color: white;
   font-weight: 600;
-  box-shadow: inset 4px 0 0 0 var(--color-azul);
+  box-shadow: inset 4px 0 0 0 var(--color-verde);
 }
 .nav-item.active i {
   color: white;
@@ -511,15 +509,6 @@
 }
 
 /* Page content */
-.page-content {
-  background: var(--color-bg); /* usa el mismo fondo institucional */
-  border-radius: 12px; /* esquinas suaves */
-  padding: 2rem;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); /* sombra más ligera */
-  transition:
-    background 0.25s ease,
-    box-shadow 0.25s ease;
-}
 .page-content h2,
 .page-content h3 {
   font-weight: 700;

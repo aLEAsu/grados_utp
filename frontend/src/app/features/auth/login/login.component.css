@@ -65,7 +65,7 @@
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 0.75rem;
-  color: var(--color-azul);
+  color: white;
   font-family: 'Roboto', sans-serif;
 }
 
@@ -486,7 +486,7 @@
 
   .brand-title,
   .form-header h2 {
-    color: #e3f2fd;
+    color: white;
   }
 }
 
