@@ -1,0 +1,25 @@
+# Development stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install required tools for development
+RUN apk add --no-cache openssl curl
+
+# Copiar package.json y package-lock.json
+COPY package*.json ./
+
+# Instalar todas las dependencias (incluyendo devDependencies)
+RUN npm install
+
+# Copiar el resto del código
+COPY . .
+
+# Generate Prisma Client
+RUN npx prisma generate --schema=prisma/schema.prisma
+
+# Exponer el puerto del backend
+EXPOSE 3000
+
+# Comando por defecto: servidor NestJS en modo desarrollo
+CMD ["npm", "run", "start:dev"]

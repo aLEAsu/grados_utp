@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import { ALLOWED_MODALITIES, ModalityCode } from "shared/constants/modality.constants";
+import { ALLOWED_MODALITIES, ModalityCode } from "@shared/constants/modality.constants";
 
 // Función para normalizar y validar el código de modalidad, 
 // asegurando que se acepte en mayúsculas, 

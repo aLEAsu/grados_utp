@@ -360,6 +360,12 @@ GET /api/v1/health
 # Docker
 docker-compose logs -f backend
 
+### CADA CIERTO TIEMPO EJECUTAR EL COMANDO
+docker system prune -a --volumes
+(solo si estás seguro de que no necesitas las imágenes antiguas).
+Así evitas que se acumulen capas corruptas.
+
+
 # Local
 npm run start:dev  # Los logs aparecen en consola
 ```
@@ -374,6 +380,13 @@ npm run start:dev  # Los logs aparecen en consola
 # O via psql
 psql -U itp_admin -d plataforma_grados -h localhost
 ```
+
+### Flujo para validar
+- Abre http://localhost:8069 → deberías ver tu frontend.
+
+- Abre http://localhost:4000/api/docs → deberías ver la documentación Swagger del backend.
+
+- Si quieres probar la API directamente, usa http://localhost:4000/api/v1/health → debería responder con 200 OK.
 
 ## Solución de Problemas
 

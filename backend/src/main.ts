@@ -21,7 +21,7 @@ async function bootstrap(): Promise<void> {
 
   // CORS configuration
   app.enableCors({
-    origin: appConfig.corsOrigin,
+    origin: ['http://localhost:4200', 'http://localhost:8069'], // Cambios para permitir el cambio de variable para prod y dev
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

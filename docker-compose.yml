@@ -1,7 +1,7 @@
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-bullseye
     container_name: itp-postgres
     restart: unless-stopped
     environment:
@@ -27,7 +27,7 @@ services:
     ports:
       - "4000:3000"
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       DATABASE_URL: postgresql://itp_admin:${DB_PASSWORD:-itp_dev_2024}@postgres:5432/plataforma_grados
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8069}
@@ -42,9 +42,10 @@ services:
       - signatures_data:/app/signatures
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 30s
+      timeout: 10s  #tiempo de espera para la respuesta del healthcheck
+      retries: 5  #intentos
+      start_period: 20s  # espera inicial antes de comenzar a hacer healthchecks
 
   frontend:
     build:
@@ -57,7 +58,7 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/index.html"]
+      test: ["CMD", "curl", "-f", "http://localhost:4200/index.html"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -66,3 +67,4 @@ volumes:
   postgres_data:
   uploads_data:
   signatures_data:
+
