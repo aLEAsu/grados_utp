@@ -12,7 +12,7 @@ COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
 # Install dependencies 
-RUN npm ci 
+RUN pnpm  install
 
 # Copy source code
 COPY src ./src
@@ -22,7 +22,7 @@ COPY prisma ./prisma
 RUN npx prisma generate --schema=prisma/schema.prisma
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # Production stage
 FROM node:20-alpine
