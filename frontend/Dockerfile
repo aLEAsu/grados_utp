@@ -13,7 +13,7 @@ RUN pnpm install
 COPY . .
 
 # Build for production
-RUN npm run build -- --configuration=production
+RUN pnpm run build -- --configuration=production
 
 # Production stage — serve with nginx
 FROM nginx:1.27-alpine
